@@ -1,7 +1,8 @@
 use windows::Win32::Foundation::POINT;
 
-use crate::visual::render::Render;
+use crate::visual::Render;
 
+#[derive(Clone, Debug)]
 pub struct Locator {
     pub point: POINT,
 }
