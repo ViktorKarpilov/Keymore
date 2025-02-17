@@ -1,13 +1,12 @@
 use iced::daemon::Appearance;
-use iced::widget::button;
+use iced::widget::{button, Button};
 use iced::Theme;
 use iced::{window, Point};
 use iced::{Element, Task};
+use std::sync::mpsc::channel;
 use windows::Win32::Foundation::POINT;
 
 use crate::locator::locator::Locator;
-
-struct IcedPoint;
 
 trait ToPoint {
     fn to_point(win_point: POINT) -> Point {
@@ -18,24 +17,23 @@ trait ToPoint {
     }
 }
 
-#[derive(Default)]
 pub struct TransparantLayout {
-    pub locators: Vec<Locator>,
-    pub chosen_locator: Option<Locator>,
+    locators: Vec<Locator>,
+    chosen_locator: Option<Locator>,
+    sender: std::sync::mpsc::Sender<Locator>,
 }
 
 #[derive(Debug, Clone)]
-enum Message {
+pub enum Message {
     LocatorChoosen(Locator),
     Dismiss,
 }
 
 // Locators in are not the same as locators used - need to fix that shit
 impl TransparantLayout {
-    pub fn create_layout(
-        &mut self,
-        locators: Vec<Locator>,
-    ) -> Result<Option<Locator>, iced::Error> {
+    pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
+        let (tx, rx) = channel::<Locator>();
+
         let _ = iced::application(
             "Keymore layout selector",
             TransparantLayout::update,
@@ -49,30 +47,34 @@ impl TransparantLayout {
                 TransparantLayout {
                     locators,
                     chosen_locator: None,
+                    sender: tx,
                 },
                 Task::none(),
             )
         });
 
-        return Ok(match self.chosen_locator.clone() {
-            Some(value) => Some(value),
-            None => None,
-        });
+        Ok(match rx.recv() {
+            Ok(value) => Some(value),
+            Err(_) => None,
+        })
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::LocatorChoosen(locator) => {
-                self.chosen_locator = Some(locator);
-                Task::none()
+                let _ = self.sender.send(locator);
+                window::get_latest().and_then(window::close)
             }
             Message::Dismiss => window::get_latest().and_then(window::close),
         }
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let test_button: Element<'_, Message> =
-            button("Close me!").on_press(Message::Dismiss).into();
+        let test_button: Element<'_, Message> = button("Close me!")
+            .on_press(Message::LocatorChoosen(Locator {
+                point: POINT { x: 2, y: 4 },
+            }))
+            .into();
 
         test_button
     }
@@ -97,8 +99,6 @@ impl TransparantLayout {
     }
 }
 
-pub trait Render {
-    fn render(&self) {
-        todo!()
-    }
+pub trait RenderButton {
+    fn render(&self) -> Button<'_, Message> {}
 }
