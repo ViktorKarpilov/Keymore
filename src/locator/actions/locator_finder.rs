@@ -1,122 +1,96 @@
-use std::{any::Any, error::Error};
+use std::error::Error;
 
-use windows::{
-    core::Interface,
-    Win32::{
-        Foundation::POINT,
-        System::{
-            Com::IDispatch,
-            Variant::{VARIANT, VT_DISPATCH},
+use windows::Win32::{
+    Foundation::{POINT, RECT},
+    System::{
+        Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_APARTMENTTHREADED},
+        Variant::VARIANT,
+    },
+    UI::{
+        Accessibility::{
+            CUIAutomation, IUIAutomation, IUIAutomationCondition, TreeScope_Descendants,
+            UIA_IsInvokePatternAvailablePropertyId, UIA_LocalizedControlTypePropertyId,
         },
-        UI::{
-            Accessibility::{AccessibleChildren, AccessibleObjectFromWindow, IAccessible},
-            WindowsAndMessaging::*,
-        },
+        WindowsAndMessaging::*,
     },
 };
 
-use crate::locator::locator::Locator;
+use crate::{locator::locator::Locator, monitor::get_dpi_for_window};
 
-pub fn get_root_locators(filter: Option<bool>) -> Result<Vec<Locator>, Box<dyn Error>> {
-    let hwnd;
-    let mut clickable = Vec::new();
-
+pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
+    let mut results;
     unsafe {
-        // Get pointer to window
-        hwnd = GetForegroundWindow();
-    }
+        println!("Co initialization");
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        println!("Get automation");
+        let automation: IUIAutomation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?;
+        println!("Get window");
+        let window = GetForegroundWindow();
+        println!("Get foreground");
+        let forground_element = automation.ElementFromHandle(window)?;
+        println!("Name of foreground: {:?}", forground_element.CurrentName());
+        println!("Get clickable");
+        let clickable_condition = create_clickable_elements_condition(automation)?;
+        println!("Get clickables");
+        let clickables = forground_element.FindAll(TreeScope_Descendants, &clickable_condition)?;
 
-    // Representation for window like a function idk how that work, docs are horse shit
-    let mut element_option: Option<IAccessible> = None;
+        let count = clickables.Length()?;
+        let dpi = get_dpi_for_window(window)?;
 
-    unsafe {
-        AccessibleObjectFromWindow(
-            hwnd,
-            OBJID_WINDOW.0 as u32,
-            &IAccessible::IID,
-            &mut element_option as *mut _ as *mut _,
-        )?;
-    }
-    let element = element_option.unwrap();
-    let children = get_all_accessible_children(&element)?;
+        println!("Found {:?} clickable elements", count);
 
-    for child in children.into_iter() {
-        let point = get_clickable_point(&child)?;
-        if !(filter.unwrap_or(false)
-            && (point.x < 0 || point.y < 0 || (point.x == 0 && point.y == 0)))
-        {
-            clickable.push(Locator { point });
-        }
-    }
+        results = Vec::with_capacity(clickables.Length()? as usize);
 
-    Ok(clickable)
-}
+        for i in 0..count {
+            let element = clickables.GetElement(i)?;
 
-fn get_accessible_children(acc: &IAccessible) -> Result<Vec<IAccessible>, Box<dyn Error>> {
-    let mut children = Vec::new();
-    let child_count = unsafe { acc.accChildCount()? };
-
-    if child_count == 0 {
-        return Ok(children);
-    }
-
-    let mut child_array = Vec::<VARIANT>::with_capacity(child_count as usize);
-    child_array.resize(child_count as usize, VARIANT::default());
-
-    let mut obtained_count = 0;
-    unsafe {
-        AccessibleChildren(acc, 0, child_array.as_mut_slice(), &mut obtained_count)?;
-    }
-
-    for i in 0..obtained_count as usize {
-        let child = &child_array[i];
-
-        unsafe {
-            if child.Anonymous.Anonymous.vt == VT_DISPATCH {
-                let disp_val: &Option<IDispatch> = &child.Anonymous.Anonymous.Anonymous.pdispVal;
-                if let Some(disp) = disp_val {
-                    if let Ok(child_acc) = disp.cast::<IAccessible>() {
-                        children.push(child_acc);
+            let (x, y) = {
+                let mut point = POINT::default();
+                match element.GetClickablePoint(&mut point) {
+                    Ok(_) => (point.x, point.y),
+                    Err(_) => {
+                        let rect = RECT::default();
+                        match element.CurrentBoundingRectangle() {
+                            Ok(_) => {
+                                let center_x = (rect.left + rect.right) / 2;
+                                let center_y = (rect.top + rect.bottom) / 2;
+                                (center_x, center_y)
+                            }
+                            Err(_) => (-1, -1),
+                        }
                     }
                 }
+            };
+
+            // If we got valid coordinates, add to results
+            if x != -1 && y != -1 {
+                results.push(Locator::new(POINT { x, y }, dpi));
             }
         }
     }
 
-    return Ok(children);
+    Ok(results)
 }
 
-fn get_all_accessible_children(acc: &IAccessible) -> Result<Vec<IAccessible>, Box<dyn Error>> {
-    let mut all_children = Vec::new();
-
-    let children = get_accessible_children(acc)?;
-
-    for child in children {
-        all_children.push(child.clone());
-
-        if let Ok(grandchildren) = get_all_accessible_children(&child) {
-            all_children.extend(grandchildren);
-        }
-    }
-
-    Ok(all_children)
-}
-
-fn get_clickable_point(acc: &IAccessible) -> Result<POINT, Box<dyn Error>> {
-    let mut x: i32 = 0;
-    let mut y: i32 = 0;
-    let mut width: i32 = 0;
-    let mut height: i32 = 0;
+fn create_clickable_elements_condition(
+    automation: IUIAutomation,
+) -> Result<IUIAutomationCondition, Box<dyn Error>> {
+    let combined_condition;
 
     unsafe {
-        acc.accLocation(&mut x, &mut y, &mut width, &mut height, &VARIANT::default())?;
+        let button_prop_condition = automation.CreatePropertyCondition(
+            UIA_LocalizedControlTypePropertyId,
+            &VARIANT::from("button"),
+        )?;
+
+        let invoke_pattern_condition = automation.CreatePropertyCondition(
+            UIA_IsInvokePatternAvailablePropertyId,
+            &VARIANT::from(true),
+        )?;
+
+        combined_condition =
+            automation.CreateOrCondition(&button_prop_condition, &invoke_pattern_condition)?;
     }
 
-    let center_x = x + (width / 2);
-    let center_y = y + (height / 2);
-
-    Ok(POINT {
-        x: (center_x),
-        y: (center_y),
-    })
+    Ok(combined_condition)
 }

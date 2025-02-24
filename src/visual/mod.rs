@@ -1,12 +1,15 @@
+use crate::locator::locator::Locator;
 use iced::daemon::Appearance;
-use iced::widget::{button, Button};
-use iced::Theme;
-use iced::{window, Point};
+use iced::widget::canvas;
+use iced::{window, Point, Size};
 use iced::{Element, Task};
+use iced::{Length, Theme};
+use locators_canvas::LocatorCanvas;
+use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
 use windows::Win32::Foundation::POINT;
-
-use crate::locator::locator::Locator;
+mod key_queue;
+mod locators_canvas;
 
 trait ToPoint {
     fn to_point(win_point: POINT) -> Point {
@@ -17,7 +20,7 @@ trait ToPoint {
     }
 }
 
-pub struct TransparantLayout {
+pub struct TransparentLayout {
     locators: Vec<Locator>,
     chosen_locator: Option<Locator>,
     sender: std::sync::mpsc::Sender<Locator>,
@@ -30,26 +33,31 @@ pub enum Message {
 }
 
 // Locators in are not the same as locators used - need to fix that shit
-impl TransparantLayout {
+impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let (tx, rx) = channel::<Locator>();
 
+        let (width, height) = get_primary_screen_size().expect("Screen size");
+        let size: Size = Size::new(width as f32, height as f32);
+
         let _ = iced::application(
             "Keymore layout selector",
-            TransparantLayout::update,
-            TransparantLayout::view,
+            TransparentLayout::update,
+            TransparentLayout::view,
         )
-        .transparent(true)
+        .window_size(size)
         .decorations(false)
-        .style(TransparantLayout::style)
+        .centered()
+        .transparent(true)
+        .style(TransparentLayout::style)
         .run_with(|| {
             (
-                TransparantLayout {
+                TransparentLayout {
                     locators,
                     chosen_locator: None,
                     sender: tx,
                 },
-                Task::none(),
+                window::get_latest().and_then(|id| window::gain_focus(id)),
             )
         });
 
@@ -70,13 +78,12 @@ impl TransparantLayout {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let test_button: Element<'_, Message> = button("Close me!")
-            .on_press(Message::LocatorChoosen(Locator {
-                point: POINT { x: 2, y: 4 },
-            }))
-            .into();
-
-        test_button
+        canvas(LocatorCanvas {
+            locators: &self.locators,
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 
     // fn subscription(&self) -> Subscription<Message> {
@@ -97,8 +104,4 @@ impl TransparantLayout {
             text_color: theme.palette().text,
         }
     }
-}
-
-pub trait RenderButton {
-    fn render(&self) -> Button<'_, Message> {}
 }

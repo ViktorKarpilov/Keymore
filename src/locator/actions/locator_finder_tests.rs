@@ -5,7 +5,7 @@ mod tests {
     #[test]
     fn test_add() {
         println!("Start locator");
-        let locators = get_root_locators(Some(true)).ok().unwrap();
+        let locators = get_root_locators().ok().unwrap();
         assert_ne!(locators.len(), 0);
     }
 }
