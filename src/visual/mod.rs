@@ -1,27 +1,19 @@
 use crate::locator::locator::Locator;
 use iced::daemon::Appearance;
 use iced::widget::canvas;
-use iced::{window, Point, Size};
+use iced::{window, Size};
 use iced::{Element, Task};
 use iced::{Length, Theme};
 use locators_canvas::LocatorCanvas;
+use locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
-use windows::Win32::Foundation::POINT;
 mod key_queue;
 mod locators_canvas;
-
-trait ToPoint {
-    fn to_point(win_point: POINT) -> Point {
-        Point {
-            x: win_point.x as f32,
-            y: (-win_point.y) as f32,
-        }
-    }
-}
+mod locators_trie_node;
 
 pub struct TransparentLayout {
-    locators: Vec<Locator>,
+    locators_trie: LocatorTrieNode,
     chosen_locator: Option<Locator>,
     sender: std::sync::mpsc::Sender<Locator>,
 }
@@ -35,6 +27,7 @@ pub enum Message {
 // Locators in are not the same as locators used - need to fix that shit
 impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
+        let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
@@ -53,7 +46,7 @@ impl TransparentLayout {
         .run_with(|| {
             (
                 TransparentLayout {
-                    locators,
+                    locators_trie,
                     chosen_locator: None,
                     sender: tx,
                 },
@@ -79,7 +72,7 @@ impl TransparentLayout {
 
     fn view(&self) -> Element<'_, Message> {
         canvas(LocatorCanvas {
-            locators: &self.locators,
+            locators_trie: &self.locators_trie,
         })
         .width(Length::Fill)
         .height(Length::Fill)

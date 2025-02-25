@@ -1,4 +1,3 @@
-use crate::{key_queue, locator::locator::Locator};
 use iced::{
     alignment::{Horizontal, Vertical},
     mouse,
@@ -9,8 +8,11 @@ use iced::{
     Color, Font, Point, Rectangle, Renderer, Theme,
 };
 
+use super::locators_trie_node::LocatorTrieNode;
+
 pub struct LocatorCanvas<'a> {
-    pub locators: &'a Vec<Locator>,
+    pub locators_trie: &'a LocatorTrieNode,
+    pub location_key: &'a str,
 }
 
 impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
@@ -25,12 +27,13 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
-        let mut keys = key_queue!();
+        let locators_with_path = self.locators_trie.accessible_children(&self.location_key);
 
-        self.locators.iter().for_each(|locator| {
-            // IDK Do i need to bother about such cases - i can expand key que if needed
+        locators_with_path.iter().for_each(|(node, id)| {
+            let locator = node.node.as_ref().unwrap();
             let text: Text = Text {
-                content: format!("{:?}", keys.pop().unwrap_or("!!!").to_string()),
+                // IDK Do i need to bother about such cases(!!!) - i can expand key que if needed
+                content: format!("{:?}", id),
                 position: Point::new(
                     locator.resolution_point.x as f32,
                     (locator.resolution_point.y) as f32,
