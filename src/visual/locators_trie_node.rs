@@ -1,6 +1,6 @@
-use std::{any::Any, ops::Index};
-
 use crate::{key_qeue_14, key_qeue_196, key_qeue_2744, locator::locator::Locator};
+
+pub const DEFAULT_IDENTIFIER: char = '*';
 
 // Note * - start identifier
 pub struct LocatorTrieNode {
@@ -19,7 +19,7 @@ impl LocatorTrieNode {
 
         let mut root = LocatorTrieNode {
             node: None,
-            identifier: '*',
+            identifier: DEFAULT_IDENTIFIER,
             children: None,
         };
 
@@ -37,7 +37,9 @@ impl LocatorTrieNode {
         if let Some(children) = &self.children {
             for child in children {
                 let mut idefier = String::new();
-                idefier.push_str(self.identifier.to_string().as_str());
+                if self.identifier != DEFAULT_IDENTIFIER {
+                    idefier.push_str(self.identifier.to_string().as_str());
+                }
                 idefier.push_str(&child.identifier.to_string());
 
                 buffer.push((&child, idefier));

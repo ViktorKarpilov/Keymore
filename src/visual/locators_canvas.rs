@@ -12,7 +12,7 @@ use super::locators_trie_node::LocatorTrieNode;
 
 pub struct LocatorCanvas<'a> {
     pub locators_trie: &'a LocatorTrieNode,
-    pub location_key: Option<&'a str>,
+    pub location_key: Option<String>,
 }
 
 impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {

@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "screen_size",
+ "smol_str",
  "windows 0.59.0",
 ]
 
