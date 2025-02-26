@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::{any::Any, ops::Index};
 
 use crate::{key_qeue_14, key_qeue_196, key_qeue_2744, locator::locator::Locator};
 
@@ -29,6 +29,40 @@ impl LocatorTrieNode {
         });
 
         root
+    }
+
+    pub fn get_children(&self) -> Vec<(&LocatorTrieNode, String)> {
+        let mut buffer: Vec<(&LocatorTrieNode, String)> = Vec::new();
+
+        if let Some(children) = &self.children {
+            for child in children {
+                let mut idefier = String::new();
+                idefier.push_str(self.identifier.to_string().as_str());
+                idefier.push_str(&child.identifier.to_string());
+
+                buffer.push((&child, idefier));
+            }
+        }
+
+        if buffer.first().unwrap().0.children.is_some() {
+            let mut temp_buffer: Vec<(&LocatorTrieNode, String)> = Vec::new();
+            buffer.iter().for_each(|buf| {
+                let mut buf_accesible: Vec<(&LocatorTrieNode, String)> = buf
+                    .0
+                    .get_children()
+                    .iter()
+                    .map(|child| {
+                        let child_id = child.1.clone();
+                        let current_id = self.identifier;
+                        (child.0, format!("{current_id}{child_id}"))
+                    })
+                    .collect();
+
+                temp_buffer.append(&mut buf_accesible);
+            });
+        }
+
+        buffer
     }
 
     pub fn accessible_children(&self, key: &str) -> Vec<(&LocatorTrieNode, String)> {
