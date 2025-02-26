@@ -12,9 +12,10 @@ mod key_queue;
 mod locators_canvas;
 mod locators_trie_node;
 
-pub struct TransparentLayout {
+pub struct TransparentLayout<'a> {
     locators_trie: LocatorTrieNode,
     chosen_locator: Option<Locator>,
+    chosen_key: &'a str,
     sender: std::sync::mpsc::Sender<Locator>,
 }
 
@@ -25,7 +26,7 @@ pub enum Message {
 }
 
 // Locators in are not the same as locators used - need to fix that shit
-impl TransparentLayout {
+impl<'a> TransparentLayout<'a> {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
@@ -48,6 +49,7 @@ impl TransparentLayout {
                 TransparentLayout {
                     locators_trie,
                     chosen_locator: None,
+                    chosen_key: "",
                     sender: tx,
                 },
                 window::get_latest().and_then(|id| window::gain_focus(id)),
@@ -71,8 +73,14 @@ impl TransparentLayout {
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let location_key = match self.chosen_key {
+            "" => None,
+            _ => Some(self.chosen_key),
+        };
+
         canvas(LocatorCanvas {
             locators_trie: &self.locators_trie,
+            location_key,
         })
         .width(Length::Fill)
         .height(Length::Fill)

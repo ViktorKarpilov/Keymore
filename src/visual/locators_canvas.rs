@@ -12,7 +12,7 @@ use super::locators_trie_node::LocatorTrieNode;
 
 pub struct LocatorCanvas<'a> {
     pub locators_trie: &'a LocatorTrieNode,
-    pub location_key: &'a str,
+    pub location_key: Option<&'a str>,
 }
 
 impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
@@ -27,7 +27,11 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
-        let locators_with_path = self.locators_trie.accessible_children(&self.location_key);
+
+        let locators_with_path = match &self.location_key {
+            Some(target_key) => self.locators_trie.accessible_children(&target_key),
+            None => self.locators_trie.get_children(),
+        };
 
         locators_with_path.iter().for_each(|(node, id)| {
             let locator = node.node.as_ref().unwrap();
