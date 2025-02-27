@@ -1,6 +1,6 @@
 use iced::{
     alignment::{Horizontal, Vertical},
-    mouse,
+    mouse::{self},
     widget::{
         canvas::{self, Text},
         text::Shaping,
@@ -11,8 +11,23 @@ use iced::{
 use super::locators_trie_node::LocatorTrieNode;
 
 pub struct LocatorCanvas<'a> {
-    pub locators_trie: &'a LocatorTrieNode,
     pub location_key: Option<String>,
+    pub locations_paths: Option<Vec<(&'a LocatorTrieNode, String)>>,
+}
+
+impl<'a> LocatorCanvas<'a> {
+    pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorCanvas<'a> {
+        let locations_paths = match location_key.clone() {
+            Some(target_key) => LocatorTrieNode::accessible_children(&locators_trie, &target_key),
+
+            None => Some(locators_trie.get_children()),
+        };
+
+        LocatorCanvas {
+            location_key,
+            locations_paths,
+        }
+    }
 }
 
 impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
@@ -27,49 +42,31 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
+        println!("Key: {:?}", self.location_key);
 
-        let locators_with_path = match &self.location_key {
-            Some(target_key) => self.locators_trie.accessible_children(&target_key),
-            None => self.locators_trie.get_children(),
-        };
+        if let Some(locators_with_path) = &self.locations_paths {
+            locators_with_path.iter().for_each(|(node, id)| {
+                if let Some(locator) = node.node.as_ref() {
+                    let text: Text = Text {
+                        // IDK Do i need to bother about such cases(!!!) - i can expand key que if needed
+                        content: format!("{:?}", id),
+                        position: Point::new(
+                            locator.resolution_point.x as f32,
+                            (locator.resolution_point.y) as f32,
+                        ),
+                        color: Color::from_rgb8(219, 174, 24),
+                        size: 15.0.into(), // Use appropriate size
+                        font: Font::default(),
+                        horizontal_alignment: Horizontal::Center,
+                        vertical_alignment: Vertical::Center,
+                        shaping: Shaping::Basic,
 
-        locators_with_path.iter().for_each(|(node, id)| {
-            let locator = node.node.as_ref().unwrap();
-            let text: Text = Text {
-                // IDK Do i need to bother about such cases(!!!) - i can expand key que if needed
-                content: format!("{:?}", id),
-                position: Point::new(
-                    locator.resolution_point.x as f32,
-                    (locator.resolution_point.y) as f32,
-                ),
-                color: Color::from_rgb8(219, 174, 24),
-                size: 15.0.into(), // Use appropriate size
-                font: Font::default(),
-                horizontal_alignment: Horizontal::Center,
-                vertical_alignment: Vertical::Center,
-                shaping: Shaping::Basic,
-
-                ..Text::default()
-            };
-            frame.fill_text(text);
-        });
-
-        // // Test module
-        // for i in (0..1300).step_by(10) {
-        //     let text: Text = Text {
-        //         content: format!("Coord: {:?}", i),
-        //         position: Point::new(i as f32, i as f32),
-        //         color: Color::from_rgb8(219, 174, 24),
-        //         size: 10.0.into(), // Use appropriate size
-        //         font: Font::default(),
-        //         horizontal_alignment: Horizontal::Center,
-        //         vertical_alignment: Vertical::Center,
-        //         shaping: Shaping::Basic,
-
-        //         ..Text::default()
-        //     };
-        //     frame.fill_text(text);
-        // }
+                        ..Text::default()
+                    };
+                    frame.fill_text(text);
+                }
+            });
+        }
 
         vec![frame.into_geometry()]
     }

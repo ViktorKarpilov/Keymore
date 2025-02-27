@@ -7,6 +7,7 @@ pub struct LocatorTrieNode {
     pub node: Option<Locator>,
     identifier: char,
     children: Option<Vec<LocatorTrieNode>>,
+    key_len: Option<usize>,
 }
 
 impl LocatorTrieNode {
@@ -21,6 +22,7 @@ impl LocatorTrieNode {
             node: None,
             identifier: DEFAULT_IDENTIFIER,
             children: None,
+            key_len: Some(keys[0].len()),
         };
 
         locators.into_iter().for_each(|locator| {
@@ -41,7 +43,6 @@ impl LocatorTrieNode {
                     idefier.push_str(self.identifier.to_string().as_str());
                 }
                 idefier.push_str(&child.identifier.to_string());
-
                 buffer.push((&child, idefier));
             }
         }
@@ -55,7 +56,10 @@ impl LocatorTrieNode {
                     .iter()
                     .map(|child| {
                         let child_id = child.1.clone();
-                        let current_id = self.identifier;
+                        let current_id = match self.identifier {
+                            DEFAULT_IDENTIFIER => String::new(),
+                            non_trivial => non_trivial.to_string(),
+                        };
                         (child.0, format!("{current_id}{child_id}"))
                     })
                     .collect();
@@ -67,43 +71,47 @@ impl LocatorTrieNode {
         buffer
     }
 
-    pub fn accessible_children(&self, key: &str) -> Vec<(&LocatorTrieNode, String)> {
-        let mut buffer: Vec<(&LocatorTrieNode, String)> = Vec::new();
-        if key.len() <= 0 {
+    pub fn accessible_children<'a>(
+        locators_trie_root: &'a LocatorTrieNode,
+        key: &str,
+    ) -> Option<Vec<(&'a LocatorTrieNode, String)>> {
+        println!("Key: {:?}", key);
+
+        let mut buffer: Option<Vec<(&LocatorTrieNode, String)>> = Some(vec![(
+            &locators_trie_root,
+            locators_trie_root.identifier.to_string(),
+        )]);
+
+        if key.len() < 1 {
             return buffer;
         }
 
+        let current_id = match locators_trie_root.identifier {
+            DEFAULT_IDENTIFIER => String::from(""),
+            non_trivial => non_trivial.to_string(),
+        };
         let target_identifier = key.chars().next().unwrap();
-        if let Some(children) = &self.children {
-            for child in children {
-                if child.identifier == target_identifier {
-                    let mut idefier = String::new();
-                    idefier.push_str(self.identifier.to_string().as_str());
-                    idefier.push_str(&child.identifier.to_string());
-
-                    buffer.push((&child, idefier));
-                }
-            }
-        }
-
-        let left_key = key.get(1..);
-
-        if let Some(key_left) = left_key {
-            let mut temp_buffer: Vec<(&LocatorTrieNode, String)> = Vec::new();
-            buffer.iter().for_each(|buf| {
-                let mut buf_accesible: Vec<(&LocatorTrieNode, String)> = buf
-                    .0
-                    .accessible_children(key_left)
+        let left_key = key.get(1..).unwrap();
+        buffer = match &locators_trie_root.children {
+            Some(children) => Some(
+                children
                     .iter()
-                    .map(|child| {
-                        let child_id = child.1.clone();
-                        (child.0, format!("{target_identifier}{child_id}"))
+                    .filter_map(|child| match child.identifier == target_identifier {
+                        true => Some(LocatorTrieNode::accessible_children(child, left_key)),
+                        false => None,
                     })
-                    .collect();
-
-                temp_buffer.append(&mut buf_accesible);
-            });
-        }
+                    .fold(Vec::new(), |mut acc, other| {
+                        if let Some(mut other_value) = other {
+                            acc.append(&mut other_value);
+                        }
+                        acc
+                    })
+                    .iter()
+                    .map(|child| (child.0, format!("{}{}", current_id, child.1)))
+                    .collect(),
+            ),
+            None => None,
+        };
 
         buffer
     }
@@ -129,6 +137,7 @@ impl LocatorTrieNode {
                         node: None,
                         identifier: search_target,
                         children: None,
+                        key_len: None,
                     });
                     children.len() - 1
                 }

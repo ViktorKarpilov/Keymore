@@ -8,17 +8,34 @@ use iced::{Length, Theme};
 use locators_canvas::LocatorCanvas;
 use locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
-use std::str::FromStr;
 use std::sync::mpsc::channel;
 mod key_queue;
 mod locators_canvas;
 mod locators_trie_node;
 
-pub struct TransparentLayout {
-    locators_trie: LocatorTrieNode,
+pub struct TransparentLayout<'a> {
     chosen_locator: Option<Locator>,
-    chosen_key: String,
+    chosen_key: Option<String>,
     sender: std::sync::mpsc::Sender<Locator>,
+    canvas_layout: LocatorCanvas<'a>,
+}
+
+impl<'a> TransparentLayout<'a> {
+    pub fn new(
+        locators_trie: LocatorTrieNode,
+        chosen_locator: Option<Locator>,
+        chosen_key: Option<String>,
+        sender: std::sync::mpsc::Sender<Locator>,
+    ) -> TransparentLayout<'a> {
+        let canvas: LocatorCanvas<'a> = LocatorCanvas::new(locators_trie, chosen_key.clone());
+
+        TransparentLayout {
+            chosen_key,
+            sender,
+            chosen_locator,
+            canvas_layout: canvas,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -30,10 +47,11 @@ pub enum Message {
 }
 
 // Locators in are not the same as locators used - need to fix that shit
-impl TransparentLayout {
+impl<'a> TransparentLayout<'a> {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
+        let layout: TransparentLayout<'a> = TransparentLayout::new(locators_trie, None, None, tx);
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
@@ -51,12 +69,7 @@ impl TransparentLayout {
         .subscription(TransparentLayout::subscription)
         .run_with(|| {
             (
-                TransparentLayout {
-                    locators_trie,
-                    chosen_locator: None,
-                    chosen_key: String::new(),
-                    sender: tx,
-                },
+                layout,
                 window::get_latest().and_then(|id| window::gain_focus(id)),
             )
         });
@@ -76,13 +89,18 @@ impl TransparentLayout {
                 window::get_latest().and_then(window::close)
             }
             Message::UpdateChosenKey(new_key) => {
-                self.chosen_key = {
+                let new_key = {
                     match potential_targets.contains(&new_key.as_str()) {
-                        true => format!("{}{}", self.chosen_key, new_key.as_str()),
-                        false => String::new(),
+                        true => Some({
+                            if let Some(chosen_key) = &self.chosen_key {
+                                format!("{}{}", chosen_key, new_key.as_str())
+                            } else {
+                                format!("{}", new_key.as_str())
+                            }
+                        }),
+                        false => None,
                     }
                 };
-
                 Task::none()
             }
             Message::Dismiss => window::get_latest().and_then(window::close),
@@ -90,19 +108,12 @@ impl TransparentLayout {
         }
     }
 
-    fn view(&self) -> Element<'_, Message> {
-        let location_key = match self.chosen_key.as_ref() {
-            "" => None,
-            non_trivial_string => Some(non_trivial_string.to_string()),
-        };
-
-        canvas(LocatorCanvas {
-            locators_trie: &self.locators_trie,
-            location_key,
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+    fn view(&self) -> Element<'a, Message> {
+        // canvas(self.canvas_layout)
+        //     .width(Length::Fill)
+        //     .height(Length::Fill)
+        //     .into()
+        todo!()
     }
 
     fn subscription(&self) -> Subscription<Message> {
