@@ -3,7 +3,7 @@ use crate::{key_qeue_14, key_qeue_196, key_qeue_2744, locator::locator::Locator}
 pub const DEFAULT_IDENTIFIER: char = '*';
 
 // Note * - start identifier
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct LocatorTrieNode {
     pub node: Option<Locator>,
     identifier: char,
@@ -33,31 +33,26 @@ impl LocatorTrieNode {
 
         root
     }
-    
+
     pub fn get_children(self) -> Vec<(LocatorTrieNode, String)> {
         let identifier = self.identifier;
         let current_id = match self.identifier {
             DEFAULT_IDENTIFIER => String::from(""),
             non_trivial => non_trivial.to_string(),
         };
-        
+
         match self.children {
-            Some(children) => 
-                children
-                    .into_iter()
-                    .map(|child| child.get_children())
-                    .fold(Vec::new(), |mut acc, mut other| {
-                        acc.append(&mut other);
-                        acc
-                    })
-                    .into_iter()
-                    .map(|child| (child.0, format!("{}{}", current_id, child.1)))
-                    .collect(),
-            None =>
-                vec![(
-                    self,
-                    identifier.to_string(),
-                )]
+            Some(children) => children
+                .into_iter()
+                .map(|child| child.get_children())
+                .fold(Vec::new(), |mut acc, mut other| {
+                    acc.append(&mut other);
+                    acc
+                })
+                .into_iter()
+                .map(|child| (child.0, format!("{}{}", current_id, child.1)))
+                .collect(),
+            None => vec![(self, identifier.to_string())],
         }
     }
 
@@ -65,14 +60,10 @@ impl LocatorTrieNode {
         locators_trie_root: LocatorTrieNode,
         key: &str,
     ) -> Option<Vec<(LocatorTrieNode, String)>> {
-        println!("Key: {:?}", key);
         let identifier = locators_trie_root.identifier;
 
         if key.len() < 1 {
-                return Some(vec![(
-                locators_trie_root,
-                identifier.to_string(),
-            )]);
+            return Some(vec![(locators_trie_root, identifier.to_string())]);
         }
 
         let current_id = match identifier {
@@ -81,6 +72,13 @@ impl LocatorTrieNode {
         };
         let target_identifier = key.chars().next().unwrap();
         let left_key = key.get(1..).unwrap();
+
+        println!(
+            "identifier: {:?}, current_id:{:?}, target_identifier: {:?}, left_key: {:?}",
+            identifier, current_id, target_identifier, left_key
+        );
+
+        println!("Self: {:?}", locators_trie_root);
         match locators_trie_root.children {
             Some(children) => Some(
                 children
@@ -99,7 +97,12 @@ impl LocatorTrieNode {
                     .map(|child| (child.0, format!("{}{}", current_id, child.1)))
                     .collect(),
             ),
-            None => None,
+            None => {
+                if key.len() == 1 && identifier == target_identifier {
+                    return Some(vec![(locators_trie_root, identifier.to_string())]);
+                }
+                None
+            }
         }
     }
 
