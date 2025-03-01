@@ -14,7 +14,6 @@ mod locators_canvas;
 mod locators_trie_node;
 
 pub struct TransparentLayout {
-    chosen_locator: Option<Locator>,
     chosen_key: Option<String>,
     sender: std::sync::mpsc::Sender<Locator>,
     canvas_layout: LocatorCanvas,
@@ -23,7 +22,6 @@ pub struct TransparentLayout {
 impl TransparentLayout {
     pub fn new(
         locators_trie: LocatorTrieNode,
-        chosen_locator: Option<Locator>,
         chosen_key: Option<String>,
         sender: std::sync::mpsc::Sender<Locator>,
     ) -> TransparentLayout {
@@ -32,7 +30,6 @@ impl TransparentLayout {
         TransparentLayout {
             chosen_key,
             sender,
-            chosen_locator,
             canvas_layout: canvas,
         }
     }
@@ -51,7 +48,7 @@ impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
-        let layout: TransparentLayout = TransparentLayout::new(locators_trie, None, None, tx);
+        let layout: TransparentLayout = TransparentLayout::new(locators_trie, None, tx);
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
@@ -101,9 +98,24 @@ impl TransparentLayout {
                         false => None,
                     }
                 };
-                
+
                 println!("New key: {:?}", new_key);
                 self.canvas_layout.update(new_key);
+
+                if self.canvas_layout.locations_paths.is_none() {
+                    self.canvas_layout.update(None);
+                    self.chosen_key = None;
+                }
+
+                if let Some(points) = &self.canvas_layout.locations_paths {
+                    if points.len() == 1 {
+                        let pint_to_click = points[0].0.node.clone().unwrap().resolution_point;
+                        // TODO Click point
+                        todo!();
+                    }
+                }
+                println!("Paths: {:?}", self.canvas_layout.locations_paths);
+
                 Task::none()
             }
             Message::Dismiss => window::get_latest().and_then(window::close),

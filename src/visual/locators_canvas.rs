@@ -23,38 +23,62 @@ impl LocatorCanvas {
         let locations_paths = LocatorCanvas::filtered_children(children, location_key.clone());
 
         let root = locators_trie;
-        
+
         LocatorCanvas {
             location_key,
             locations_paths,
             root,
         }
     }
-    
-    pub fn update(&mut self, location_key: Option<String>){
+
+    pub fn update(&mut self, location_key: Option<String>) {
         let children = self.root.children.clone().unwrap();
-        self.locations_paths = LocatorCanvas::filtered_children(children, location_key);
+        let target_paths = LocatorCanvas::filtered_children(children, location_key);
+        self.locations_paths = {
+            match target_paths {
+                Some(value) => {
+                    if value.len() == 0 {
+                        None
+                    } else {
+                        Some(value)
+                    }
+                }
+                None => None,
+            }
+        };
+
+        println!("{:?}", self.locations_paths);
     }
-    
-    fn filtered_children(children: Vec<LocatorTrieNode>, location_key: Option<String>) -> Option<Vec<(LocatorTrieNode, String)>>{
+
+    fn filtered_children(
+        children: Vec<LocatorTrieNode>,
+        location_key: Option<String>,
+    ) -> Option<Vec<(LocatorTrieNode, String)>> {
         match location_key {
-            Some(target_key) => Some(children
-                .into_iter()
-                .filter_map(|child| LocatorTrieNode::accessible_children(child, target_key.as_str()))
-                .fold(vec![], |mut acc, children| {
-                    acc.extend(children);
-                    acc}
-                )
-                .into_iter()
-                .collect()),
+            Some(target_key) => Some(
+                children
+                    .into_iter()
+                    .filter_map(|child| {
+                        LocatorTrieNode::accessible_children(child, target_key.as_str())
+                    })
+                    .fold(vec![], |mut acc, children| {
+                        acc.extend(children);
+                        acc
+                    })
+                    .into_iter()
+                    .collect(),
+            ),
             None => Some(
                 children
                     .into_iter()
                     .map(|child| child.get_children())
-                    .fold(vec![], |mut acc, children| {acc.extend(children); acc})
+                    .fold(vec![], |mut acc, children| {
+                        acc.extend(children);
+                        acc
+                    })
                     .into_iter()
                     .collect(),
-            )
+            ),
         }
     }
 }
