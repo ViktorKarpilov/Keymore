@@ -13,21 +13,21 @@ mod key_queue;
 mod locators_canvas;
 mod locators_trie_node;
 
-pub struct TransparentLayout<'a> {
+pub struct TransparentLayout {
     chosen_locator: Option<Locator>,
     chosen_key: Option<String>,
     sender: std::sync::mpsc::Sender<Locator>,
-    canvas_layout: LocatorCanvas<'a>,
+    canvas_layout: LocatorCanvas,
 }
 
-impl<'a> TransparentLayout<'a> {
+impl TransparentLayout {
     pub fn new(
         locators_trie: LocatorTrieNode,
         chosen_locator: Option<Locator>,
         chosen_key: Option<String>,
         sender: std::sync::mpsc::Sender<Locator>,
-    ) -> TransparentLayout<'a> {
-        let canvas: LocatorCanvas<'a> = LocatorCanvas::new(locators_trie, chosen_key.clone());
+    ) -> TransparentLayout {
+        let canvas: LocatorCanvas = LocatorCanvas::new(locators_trie, chosen_key.clone());
 
         TransparentLayout {
             chosen_key,
@@ -40,18 +40,18 @@ impl<'a> TransparentLayout<'a> {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    LocatorChoosen(Locator),
+    LocatorChosen(Locator),
     Dismiss,
     UpdateChosenKey(smol_str::SmolStr),
     Pass,
 }
 
 // Locators in are not the same as locators used - need to fix that shit
-impl<'a> TransparentLayout<'a> {
+impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
-        let layout: TransparentLayout<'a> = TransparentLayout::new(locators_trie, None, None, tx);
+        let layout: TransparentLayout = TransparentLayout::new(locators_trie, None, None, tx);
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
@@ -84,7 +84,7 @@ impl<'a> TransparentLayout<'a> {
         let potential_targets = key_qeue_14!();
 
         match message {
-            Message::LocatorChoosen(locator) => {
+            Message::LocatorChosen(locator) => {
                 let _ = self.sender.send(locator);
                 window::get_latest().and_then(window::close)
             }
@@ -101,6 +101,9 @@ impl<'a> TransparentLayout<'a> {
                         false => None,
                     }
                 };
+                
+                println!("New key: {:?}", new_key);
+                self.canvas_layout.update(new_key);
                 Task::none()
             }
             Message::Dismiss => window::get_latest().and_then(window::close),
@@ -108,12 +111,11 @@ impl<'a> TransparentLayout<'a> {
         }
     }
 
-    fn view(&self) -> Element<'a, Message> {
-        // canvas(self.canvas_layout)
-        //     .width(Length::Fill)
-        //     .height(Length::Fill)
-        //     .into()
-        todo!()
+    fn view(&self) -> Element<'_, Message> {
+        canvas(self.canvas_layout.clone())
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
     }
 
     fn subscription(&self) -> Subscription<Message> {
