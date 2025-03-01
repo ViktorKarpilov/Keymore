@@ -20,18 +20,11 @@ use crate::{locator::locator::Locator, monitor::get_dpi_for_window};
 pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
     let mut results;
     unsafe {
-        println!("Co initialization");
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-        println!("Get automation");
         let automation: IUIAutomation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?;
-        println!("Get window");
         let window = GetForegroundWindow();
-        println!("Get foreground");
         let forground_element = automation.ElementFromHandle(window)?;
-        println!("Name of foreground: {:?}", forground_element.CurrentName());
-        println!("Get clickable");
         let clickable_condition = create_clickable_elements_condition(automation)?;
-        println!("Get clickables");
         let clickables = forground_element.FindAll(TreeScope_Descendants, &clickable_condition)?;
 
         let count = clickables.Length()?;
