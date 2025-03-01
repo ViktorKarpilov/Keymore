@@ -73,12 +73,6 @@ impl LocatorTrieNode {
         let target_identifier = key.chars().next().unwrap();
         let left_key = key.get(1..).unwrap();
 
-        println!(
-            "identifier: {:?}, current_id:{:?}, target_identifier: {:?}, left_key: {:?}",
-            identifier, current_id, target_identifier, left_key
-        );
-
-        println!("Self: {:?}", locators_trie_root);
         match locators_trie_root.children {
             Some(children) => Some(
                 children

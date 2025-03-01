@@ -99,7 +99,6 @@ impl TransparentLayout {
                     }
                 };
 
-                println!("New key: {:?}", new_key);
                 self.canvas_layout.update(new_key);
 
                 if self.canvas_layout.locations_paths.is_none() {
@@ -109,12 +108,11 @@ impl TransparentLayout {
 
                 if let Some(points) = &self.canvas_layout.locations_paths {
                     if points.len() == 1 {
-                        let pint_to_click = points[0].0.node.clone().unwrap().resolution_point;
-                        // TODO Click point
-                        todo!();
+                        return Task::done(Message::LocatorChosen(
+                            points[0].0.node.clone().unwrap(),
+                        ));
                     }
                 }
-                println!("Paths: {:?}", self.canvas_layout.locations_paths);
 
                 Task::none()
             }
