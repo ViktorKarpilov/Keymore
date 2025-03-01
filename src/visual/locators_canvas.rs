@@ -10,27 +10,56 @@ use iced::{
 
 use super::locators_trie_node::LocatorTrieNode;
 
-pub struct LocatorCanvas<'a> {
+#[derive(Clone)]
+pub struct LocatorCanvas {
     pub location_key: Option<String>,
-    pub locations_paths: Option<Vec<(&'a LocatorTrieNode, String)>>,
+    pub locations_paths: Option<Vec<(LocatorTrieNode, String)>>,
+    pub root: LocatorTrieNode,
 }
 
-impl<'a> LocatorCanvas<'a> {
-    pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorCanvas<'a> {
-        let locations_paths = match location_key.clone() {
-            Some(target_key) => LocatorTrieNode::accessible_children(&locators_trie, &target_key),
+impl LocatorCanvas {
+    pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorCanvas {
+        let children = locators_trie.children.clone().unwrap();
+        let locations_paths = LocatorCanvas::filtered_children(children, location_key.clone());
 
-            None => Some(locators_trie.get_children()),
-        };
-
+        let root = locators_trie;
+        
         LocatorCanvas {
             location_key,
             locations_paths,
+            root,
+        }
+    }
+    
+    pub fn update(&mut self, location_key: Option<String>){
+        let children = self.root.children.clone().unwrap();
+        self.locations_paths = LocatorCanvas::filtered_children(children, location_key);
+    }
+    
+    fn filtered_children(children: Vec<LocatorTrieNode>, location_key: Option<String>) -> Option<Vec<(LocatorTrieNode, String)>>{
+        match location_key {
+            Some(target_key) => Some(children
+                .into_iter()
+                .filter_map(|child| LocatorTrieNode::accessible_children(child, target_key.as_str()))
+                .fold(vec![], |mut acc, children| {
+                    acc.extend(children);
+                    acc}
+                )
+                .into_iter()
+                .collect()),
+            None => Some(
+                children
+                    .into_iter()
+                    .map(|child| child.get_children())
+                    .fold(vec![], |mut acc, children| {acc.extend(children); acc})
+                    .into_iter()
+                    .collect(),
+            )
         }
     }
 }
 
-impl<'a, Message> canvas::Program<Message> for LocatorCanvas<'a> {
+impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
     type State = ();
 
     fn draw(
