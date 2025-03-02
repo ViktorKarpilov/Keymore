@@ -8,7 +8,6 @@ pub struct LocatorTrieNode {
     pub node: Option<Locator>,
     identifier: char,
     pub children: Option<Vec<LocatorTrieNode>>,
-    key_len: Option<usize>,
 }
 
 impl LocatorTrieNode {
@@ -23,12 +22,12 @@ impl LocatorTrieNode {
             node: None,
             identifier: DEFAULT_IDENTIFIER,
             children: None,
-            key_len: Some(keys[0].len()),
         };
 
         locators.into_iter().for_each(|locator| {
             let key = keys.pop().unwrap_or("!!!");
-            root.find_child(key).node = Some(locator);
+            // root.find_child(key).node = Some(locator);
+            root.append_child_locator(key, locator);
         });
 
         root
@@ -100,36 +99,42 @@ impl LocatorTrieNode {
         }
     }
 
-    fn find_child(&mut self, identifier: &str) -> &mut LocatorTrieNode {
-        let search_chars: Vec<char> = identifier.chars().map(|id| id as char).collect();
-        let mut current_target = self;
+    fn append_child_locator(&mut self, identifier: &str, locator: Locator) {
+        let mut tail = self;
 
-        if current_target.children.is_none() {
-            current_target.children = Some(Vec::new());
-        }
+        for identifier_char in identifier.chars() {
+            let need_new_child = tail.children.is_none()
+                || !tail
+                    .children
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .any(|child| child.identifier == identifier_char);
 
-        for search_target in search_chars {
-            let children = current_target.children.as_mut().unwrap();
-
-            let index = match children
-                .iter()
-                .position(|child| child.identifier == search_target)
-            {
-                Some(idx) => idx,
-                None => {
-                    children.push(LocatorTrieNode {
-                        node: None,
-                        identifier: search_target,
-                        children: None,
-                        key_len: None,
-                    });
-                    children.len() - 1
+            if need_new_child {
+                if tail.children.is_none() {
+                    tail.children = Some(Vec::new());
                 }
-            };
 
-            current_target = &mut children[index];
+                tail.children.as_mut().unwrap().push(LocatorTrieNode {
+                    node: None,
+                    identifier: identifier_char,
+                    children: None,
+                });
+            }
+
+            let children = tail.children.as_mut().unwrap();
+
+            let child_index_option = children
+                .iter()
+                .position(|child| child.identifier == identifier_char);
+
+            let child_index = child_index_option
+                .expect("One and only one node always expected with any identifier");
+
+            tail = &mut children[child_index];
         }
 
-        current_target
+        tail.node = Some(locator);
     }
 }
