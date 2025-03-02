@@ -11,13 +11,11 @@ mod visual;
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Start window");
-    thread::sleep(time::Duration::from_millis(2000));
+    thread::sleep(time::Duration::from_millis(5000));
     let locators = get_root_locators()?;
 
     let created = TransparentLayout::create_layout(locators.clone())?;
 
-    thread::sleep(time::Duration::from_millis(500));
-    println!("After sleep");
     if let Some(choosen) = &created {
         MouseOperator::click(choosen.physical_point);
     }

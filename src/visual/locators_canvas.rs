@@ -46,8 +46,6 @@ impl LocatorCanvas {
                 None => None,
             }
         };
-
-        println!("{:?}", self.locations_paths);
     }
 
     fn filtered_children(
@@ -95,7 +93,6 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
-        println!("Key: {:?}", self.location_key);
 
         if let Some(locators_with_path) = &self.locations_paths {
             locators_with_path.iter().for_each(|(node, id)| {
