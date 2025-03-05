@@ -19,8 +19,8 @@ pub struct LocatorCanvas {
 
 impl LocatorCanvas {
     pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorCanvas {
-        let children = locators_trie.children.clone().unwrap();
-        let locations_paths = LocatorCanvas::filtered_children(children, location_key.clone());
+        let locations_paths =
+            LocatorCanvas::filtered_children(locators_trie.clone(), location_key.clone());
 
         let root = locators_trie;
 
@@ -32,8 +32,7 @@ impl LocatorCanvas {
     }
 
     pub fn update(&mut self, location_key: Option<String>) {
-        let children = self.root.children.clone().unwrap();
-        let target_paths = LocatorCanvas::filtered_children(children, location_key);
+        let target_paths = LocatorCanvas::filtered_children(self.root.clone(), location_key);
         self.locations_paths = {
             match target_paths {
                 Some(value) => {
@@ -49,16 +48,14 @@ impl LocatorCanvas {
     }
 
     fn filtered_children(
-        children: Vec<LocatorTrieNode>,
+        children_root: LocatorTrieNode,
+        // children: Vec<LocatorTrieNode>,
         location_key: Option<String>,
     ) -> Option<Vec<(LocatorTrieNode, String)>> {
         match location_key {
             Some(target_key) => Some(
-                children
+                LocatorTrieNode::accessible_children(children_root, target_key.as_str())
                     .into_iter()
-                    .filter_map(|child| {
-                        LocatorTrieNode::accessible_children(child, target_key.as_str())
-                    })
                     .fold(vec![], |mut acc, children| {
                         acc.extend(children);
                         acc
@@ -67,8 +64,10 @@ impl LocatorCanvas {
                     .collect(),
             ),
             None => Some(
-                children
+                children_root
+                    .get_children()
                     .into_iter()
+                    .map(|child| child.0)
                     .map(|child| child.get_children())
                     .fold(vec![], |mut acc, children| {
                         acc.extend(children);

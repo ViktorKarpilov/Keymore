@@ -99,7 +99,8 @@ impl TransparentLayout {
                     }
                 };
 
-                self.canvas_layout.update(new_key);
+                self.canvas_layout.update(new_key.clone());
+                self.chosen_key = new_key;
 
                 if self.canvas_layout.locations_paths.is_none() {
                     self.canvas_layout.update(None);
