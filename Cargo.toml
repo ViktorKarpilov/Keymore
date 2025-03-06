@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+fake = "4.0.0"
 iced = { version = "0.13.1", features = ["canvas"] }
 screen_size = "0.1.0"
 smol_str = "0.2.2"
