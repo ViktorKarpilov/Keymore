@@ -10,8 +10,11 @@ use locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
 mod key_queue;
+mod locatiors_trie_node_tests;
 mod locators_canvas;
 mod locators_trie_node;
+mod locators_canvas_tests;
+mod test_helpers;
 
 pub struct TransparentLayout {
     chosen_key: Option<String>,
@@ -38,9 +41,7 @@ impl TransparentLayout {
 #[derive(Debug, Clone)]
 pub enum Message {
     LocatorChosen(Locator),
-    Dismiss,
     UpdateChosenKey(smol_str::SmolStr),
-    Pass,
 }
 
 // Locators in are not the same as locators used - need to fix that shit
@@ -117,8 +118,6 @@ impl TransparentLayout {
 
                 Task::none()
             }
-            Message::Dismiss => window::get_latest().and_then(window::close),
-            Message::Pass => Task::none(),
         }
     }
 
