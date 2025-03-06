@@ -1,13 +1,16 @@
+use serde::Serialize;
+use serde_json::json;
 use crate::{key_qeue_14, key_qeue_196, key_qeue_2744, locator::locator::Locator};
 
 pub const DEFAULT_IDENTIFIER: char = '*';
 
 // Note * - start identifier
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct LocatorTrieNode {
     pub node: Option<Locator>,
     identifier: char,
     pub children: Option<Vec<LocatorTrieNode>>,
+    key_len: Option<usize>,
 }
 
 impl LocatorTrieNode {
@@ -22,12 +25,12 @@ impl LocatorTrieNode {
             node: None,
             identifier: DEFAULT_IDENTIFIER,
             children: None,
+            key_len: Some(keys[0].len()),
         };
 
         locators.into_iter().for_each(|locator| {
             let key = keys.pop().unwrap_or("!!!");
-            // root.find_child(key).node = Some(locator);
-            root.append_child_locator(key, locator);
+            root.find_child(key).node = Some(locator);
         });
 
         root
@@ -62,7 +65,24 @@ impl LocatorTrieNode {
         let identifier = locators_trie_root.identifier;
 
         if key.len() < 1 {
-            return Some(vec![(locators_trie_root, identifier.to_string())]);
+            return match locators_trie_root.children{
+                None => Some(vec![(locators_trie_root, identifier.to_string())]),
+                Some(children) => {
+                    children
+                    .into_iter()
+                    .map(|child| {
+                        let child_identifier = child.identifier;
+                        match child.children {
+                            Some(_) => LocatorTrieNode::accessible_children(child, key).unwrap(),
+                            None => vec!((child, format!("{}{}", locators_trie_root.identifier.clone(), child_identifier))),
+                        }
+                    })
+                    .reduce(|mut acc, mut other| {
+                        acc.append(&mut other);
+                        acc
+                    })
+                }
+            };
         }
 
         let current_id = match identifier {
@@ -99,42 +119,40 @@ impl LocatorTrieNode {
         }
     }
 
-    fn append_child_locator(&mut self, identifier: &str, locator: Locator) {
-        let mut tail = self;
+    fn find_child(&mut self, identifier: &str) -> &mut LocatorTrieNode {
+        let search_chars: Vec<char> = identifier.chars().map(|id| id as char).collect();
+        let mut current_target = self;
 
-        for identifier_char in identifier.chars() {
-            let need_new_child = tail.children.is_none()
-                || !tail
-                    .children
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .any(|child| child.identifier == identifier_char);
-
-            if need_new_child {
-                if tail.children.is_none() {
-                    tail.children = Some(Vec::new());
-                }
-
-                tail.children.as_mut().unwrap().push(LocatorTrieNode {
-                    node: None,
-                    identifier: identifier_char,
-                    children: None,
-                });
-            }
-
-            let children = tail.children.as_mut().unwrap();
-
-            let child_index_option = children
-                .iter()
-                .position(|child| child.identifier == identifier_char);
-
-            let child_index = child_index_option
-                .expect("One and only one node always expected with any identifier");
-
-            tail = &mut children[child_index];
+        if current_target.children.is_none() {
+            current_target.children = Some(Vec::new());
         }
 
-        tail.node = Some(locator);
+        for search_target in search_chars {
+            if current_target.children.is_none(){
+                current_target.children = Some(Vec::new());
+            }
+
+            let children =  current_target.children.as_mut().unwrap();
+
+            let index = match children
+                .iter()
+                .position(|child| child.identifier == search_target)
+            {
+                Some(idx) => idx,
+                None => {
+                    children.push(LocatorTrieNode {
+                        node: None,
+                        identifier: search_target,
+                        children: None,
+                        key_len: None,
+                    });
+                    children.len() - 1
+                }
+            };
+
+            current_target = &mut children[index];
+        }
+
+        current_target
     }
 }

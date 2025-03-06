@@ -7,7 +7,7 @@ use iced::{
     },
     Color, Font, Point, Rectangle, Renderer, Theme,
 };
-
+use serde_json::json;
 use super::locators_trie_node::LocatorTrieNode;
 
 #[derive(Clone)]
@@ -32,6 +32,7 @@ impl LocatorCanvas {
     }
 
     pub fn update(&mut self, location_key: Option<String>) {
+        self.location_key = location_key.clone();
         let target_paths = LocatorCanvas::filtered_children(self.root.clone(), location_key);
         self.locations_paths = {
             match target_paths {
@@ -45,6 +46,8 @@ impl LocatorCanvas {
                 None => None,
             }
         };
+
+        println!("{:?}", json!(self.locations_paths));
     }
 
     fn filtered_children(
@@ -92,6 +95,7 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
+        println!("Key: {:?}", self.location_key);
 
         if let Some(locators_with_path) = &self.locations_paths {
             locators_with_path.iter().for_each(|(node, id)| {

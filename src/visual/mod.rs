@@ -13,6 +13,8 @@ mod key_queue;
 mod locatiors_trie_node_tests;
 mod locators_canvas;
 mod locators_trie_node;
+mod locators_canvas_tests;
+mod test_helpers;
 
 pub struct TransparentLayout {
     chosen_key: Option<String>,
