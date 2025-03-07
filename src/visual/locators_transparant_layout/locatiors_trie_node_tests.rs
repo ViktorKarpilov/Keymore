@@ -1,10 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::{locator::locator::Locator, visual::locators_trie_node::LocatorTrieNode};
-    use fake::{Fake, Faker};
     use serde_json::json;
-    use windows::Win32::Foundation::POINT;
-    use crate::visual::test_helpers::{get_test_locators, KeyQueueLengths};
+    use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
+    use crate::visual::locators_transparant_layout::test_helpers::{get_test_locators, KeyQueueLengths};
 
     #[derive(Clone)]
     enum LocatorSize {

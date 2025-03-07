@@ -1,27 +1,18 @@
-use crate::key_qeue_14;
+use crate::{key_qeue_14, visual};
 use crate::locator::locator::Locator;
 use iced::daemon::Appearance;
 use iced::widget::canvas;
 use iced::{keyboard, window, Size, Subscription};
 use iced::{Element, Task};
 use iced::{Length, Theme};
-use locators_canvas::LocatorCanvas;
-use locators_trie_node::LocatorTrieNode;
+use crate::visual::locators_transparant_layout::locators_canvas::LocatorCanvas;
+use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
-use serde_json::json;
-
-mod key_queue;
-mod locatiors_trie_node_tests;
-mod locators_canvas;
-mod locators_trie_node;
-mod locators_canvas_tests;
-mod test_helpers;
-mod visual_mod_tests;
 
 pub struct TransparentLayout {
     sender: std::sync::mpsc::Sender<Locator>,
-    canvas_layout: LocatorCanvas,
+    pub canvas_layout: LocatorCanvas,
 }
 
 impl TransparentLayout {
@@ -49,6 +40,7 @@ impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
+
         let layout: TransparentLayout = TransparentLayout::new(locators_trie, tx);
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
@@ -59,18 +51,18 @@ impl TransparentLayout {
             TransparentLayout::update,
             TransparentLayout::view,
         )
-        .window_size(size)
-        .decorations(false)
-        .centered()
-        .transparent(true)
-        .style(TransparentLayout::style)
-        .subscription(TransparentLayout::subscription)
-        .run_with(|| {
-            (
-                layout,
-                window::get_latest().and_then(|id| window::gain_focus(id)),
-            )
-        });
+            .window_size(size)
+            .decorations(false)
+            .centered()
+            .transparent(true)
+            .style(TransparentLayout::style)
+            .subscription(TransparentLayout::subscription)
+            .run_with(|| {
+                (
+                    layout,
+                    window::get_latest().and_then(|id| window::gain_focus(id)),
+                )
+            });
 
         Ok(match rx.recv() {
             Ok(value) => Some(value),
@@ -78,7 +70,7 @@ impl TransparentLayout {
         })
     }
 
-    fn update(&mut self, message: Message) -> Task<Message> {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         let potential_targets = key_qeue_14!();
 
         match message {
@@ -99,7 +91,7 @@ impl TransparentLayout {
                         false => None,
                     }
                 };
-                
+
                 self.canvas_layout.update(new_key.clone());
 
                 if self.canvas_layout.locations_paths.is_none() {

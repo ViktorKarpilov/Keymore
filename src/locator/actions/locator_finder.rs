@@ -30,8 +30,6 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
         let count = clickables.Length()?;
         let dpi = get_dpi_for_window(window)?;
 
-        println!("Found {:?} clickable elements", count);
-
         results = Vec::with_capacity(clickables.Length()? as usize);
 
         for i in 0..count {
@@ -47,7 +45,12 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
                             Ok(_) => {
                                 let center_x = (rect.left + rect.right) / 2;
                                 let center_y = (rect.top + rect.bottom) / 2;
-                                (center_x, center_y)
+                       
+                                if (center_x == center_y) && center_y == 0 {
+                                    (-1, -1)
+                                } else {
+                                    (center_x, center_y)
+                                }
                             }
                             Err(_) => (-1, -1),
                         }
@@ -56,11 +59,12 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
             };
 
             // If we got valid coordinates, add to results
-            if x != -1 && y != -1 {
+            if (x != -1 && y != -1) && !(x == y && y == 0) {
                 results.push(Locator::new(POINT { x, y }, dpi));
             }
         }
     }
+    
 
     Ok(results)
 }
