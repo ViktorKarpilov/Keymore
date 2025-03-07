@@ -1,3 +1,4 @@
+use super::locators_trie_node::LocatorTrieNode;
 use iced::{
     alignment::{Horizontal, Vertical},
     mouse::{self},
@@ -7,10 +8,10 @@ use iced::{
     },
     Color, Font, Point, Rectangle, Renderer, Theme,
 };
+use serde::Serialize;
 use serde_json::json;
-use super::locators_trie_node::LocatorTrieNode;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct LocatorCanvas {
     pub location_key: Option<String>,
     pub locations_paths: Option<Vec<(LocatorTrieNode, String)>>,
@@ -32,7 +33,16 @@ impl LocatorCanvas {
     }
 
     pub fn update(&mut self, location_key: Option<String>) {
-        self.location_key = location_key.clone();
+        self.location_key = match location_key.clone() {
+            Some(key) => {
+                if key.len() > self.root.key_len {
+                    None
+                } else {
+                    Some(key)
+                }
+            }
+            None => None,
+        };
         let target_paths = LocatorCanvas::filtered_children(self.root.clone(), location_key);
         self.locations_paths = {
             match target_paths {
@@ -46,39 +56,17 @@ impl LocatorCanvas {
                 None => None,
             }
         };
-
-        println!("{:?}", json!(self.locations_paths));
     }
 
     fn filtered_children(
         children_root: LocatorTrieNode,
-        // children: Vec<LocatorTrieNode>,
         location_key: Option<String>,
     ) -> Option<Vec<(LocatorTrieNode, String)>> {
         match location_key {
-            Some(target_key) => Some(
+            Some(target_key) => {
                 LocatorTrieNode::accessible_children(children_root, target_key.as_str())
-                    .into_iter()
-                    .fold(vec![], |mut acc, children| {
-                        acc.extend(children);
-                        acc
-                    })
-                    .into_iter()
-                    .collect(),
-            ),
-            None => Some(
-                children_root
-                    .get_children()
-                    .into_iter()
-                    .map(|child| child.0)
-                    .map(|child| child.get_children())
-                    .fold(vec![], |mut acc, children| {
-                        acc.extend(children);
-                        acc
-                    })
-                    .into_iter()
-                    .collect(),
-            ),
+            }
+            None => Some(children_root.get_children()),
         }
     }
 }
@@ -95,7 +83,6 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
-        println!("Key: {:?}", self.location_key);
 
         if let Some(locators_with_path) = &self.locations_paths {
             locators_with_path.iter().for_each(|(node, id)| {

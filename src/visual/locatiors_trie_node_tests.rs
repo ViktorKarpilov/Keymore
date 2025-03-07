@@ -4,7 +4,7 @@ mod tests {
     use fake::{Fake, Faker};
     use serde_json::json;
     use windows::Win32::Foundation::POINT;
-    use crate::visual::test_helpers::get_test_locators;
+    use crate::visual::test_helpers::{get_test_locators, KeyQueueLengths};
 
     #[derive(Clone)]
     enum LocatorSize {
@@ -71,9 +71,33 @@ mod tests {
         let locator_small_group = LocatorTrieNode::accessible_children(locator_root.clone(), "f");
 
         println!("Single locator: {}", json!(single_locator));
-        assert_eq!(single_locator.unwrap().len(), 1);
+        assert_eq!(single_locator.clone().unwrap().len(), 1);
+        assert_eq!(single_locator.unwrap()[0].1, "ff");
         println!("Small group: {}", json!(locator_small_group));
         assert_eq!(locator_small_group.unwrap().len(), 14);
+    }
+
+    #[test]
+    fn search_accessible_children_returns_expected_group() {
+        let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::TRIPLE_CHAR));
+        
+        let found_group  = LocatorTrieNode::accessible_children(locator_root.clone(), "ff");
+
+        println!("Found group: {}", json!(found_group));
+        assert_eq!(found_group.clone().unwrap().len(), 14);
+        assert!(found_group.unwrap().into_iter().all(|group| group.1.len() == 3));
+    }
+
+    #[test]
+    fn search_accessible_children_when_between_char_returns_expected_group() {
+        let locator_root = LocatorTrieNode::new(get_test_locators(50));
+
+        println!("Root: {}", json!(locator_root));
+        let found_group  = LocatorTrieNode::accessible_children(locator_root.clone(), "t");
+
+        println!("Found group: {}", json!(found_group));
+        assert_eq!(found_group.clone().unwrap().len(), 14);
+        assert!(found_group.unwrap().into_iter().all(|group| group.1.len() == 2));
     }
     
     fn check_root(root: &LocatorTrieNode, size: LocatorSize) {
