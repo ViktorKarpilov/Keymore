@@ -10,7 +10,7 @@ pub struct LocatorTrieNode {
     pub node: Option<Locator>,
     identifier: char,
     pub children: Option<Vec<LocatorTrieNode>>,
-    key_len: Option<usize>,
+    pub key_len: usize,
 }
 
 impl LocatorTrieNode {
@@ -25,7 +25,7 @@ impl LocatorTrieNode {
             node: None,
             identifier: DEFAULT_IDENTIFIER,
             children: None,
-            key_len: Some(keys[0].len()),
+            key_len: keys[0].len(),
         };
 
         locators.into_iter().for_each(|locator| {
@@ -62,6 +62,10 @@ impl LocatorTrieNode {
         locators_trie_root: LocatorTrieNode,
         key: &str,
     ) -> Option<Vec<(LocatorTrieNode, String)>> {
+        if key.len() > locators_trie_root.key_len{
+            return None;
+        }
+        
         let identifier = locators_trie_root.identifier;
 
         if key.len() < 1 {
@@ -144,7 +148,7 @@ impl LocatorTrieNode {
                         node: None,
                         identifier: search_target,
                         children: None,
-                        key_len: None,
+                        key_len: current_target.key_len,
                     });
                     children.len() - 1
                 }

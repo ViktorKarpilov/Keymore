@@ -9,15 +9,17 @@ use locators_canvas::LocatorCanvas;
 use locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
+use serde_json::json;
+
 mod key_queue;
 mod locatiors_trie_node_tests;
 mod locators_canvas;
 mod locators_trie_node;
 mod locators_canvas_tests;
 mod test_helpers;
+mod visual_mod_tests;
 
 pub struct TransparentLayout {
-    chosen_key: Option<String>,
     sender: std::sync::mpsc::Sender<Locator>,
     canvas_layout: LocatorCanvas,
 }
@@ -25,13 +27,11 @@ pub struct TransparentLayout {
 impl TransparentLayout {
     pub fn new(
         locators_trie: LocatorTrieNode,
-        chosen_key: Option<String>,
         sender: std::sync::mpsc::Sender<Locator>,
     ) -> TransparentLayout {
-        let canvas: LocatorCanvas = LocatorCanvas::new(locators_trie, chosen_key.clone());
+        let canvas: LocatorCanvas = LocatorCanvas::new(locators_trie, None);
 
         TransparentLayout {
-            chosen_key,
             sender,
             canvas_layout: canvas,
         }
@@ -49,7 +49,7 @@ impl TransparentLayout {
     pub fn create_layout(locators: Vec<Locator>) -> Result<Option<Locator>, iced::Error> {
         let locators_trie = LocatorTrieNode::new(locators);
         let (tx, rx) = channel::<Locator>();
-        let layout: TransparentLayout = TransparentLayout::new(locators_trie, None, tx);
+        let layout: TransparentLayout = TransparentLayout::new(locators_trie, tx);
 
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
@@ -90,7 +90,7 @@ impl TransparentLayout {
                 let new_key = {
                     match potential_targets.contains(&new_key.as_str()) {
                         true => Some({
-                            if let Some(chosen_key) = &self.chosen_key {
+                            if let Some(chosen_key) = &self.canvas_layout.location_key {
                                 format!("{}{}", chosen_key, new_key.as_str())
                             } else {
                                 format!("{}", new_key.as_str())
@@ -99,13 +99,11 @@ impl TransparentLayout {
                         false => None,
                     }
                 };
-
+                
                 self.canvas_layout.update(new_key.clone());
-                self.chosen_key = new_key;
 
                 if self.canvas_layout.locations_paths.is_none() {
                     self.canvas_layout.update(None);
-                    self.chosen_key = None;
                 }
 
                 if let Some(points) = &self.canvas_layout.locations_paths {
