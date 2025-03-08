@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::locator::actions::locator_finder::get_root_locators;
+    use crate::windows::locator::actions::locator_finder::get_root_locators;
 
     #[test]
     fn test_add() {

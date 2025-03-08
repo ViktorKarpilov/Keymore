@@ -1,6 +1,6 @@
 use serde::Serialize;
-use serde_json::json;
-use crate::{key_qeue_14, key_qeue_196, key_qeue_2744, locator::locator::Locator};
+use crate::{key_qeue_14, key_qeue_196, key_qeue_2744};
+use crate::windows::locator::locator::Locator;
 
 pub const DEFAULT_IDENTIFIER: char = '*';
 

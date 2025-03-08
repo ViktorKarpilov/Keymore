@@ -1,5 +1,5 @@
 use crate::{key_qeue_14, visual};
-use crate::locator::locator::Locator;
+use crate::windows::locator::locator::Locator;
 use iced::daemon::Appearance;
 use iced::widget::canvas;
 use iced::{keyboard, window, Size, Subscription};
@@ -46,7 +46,8 @@ impl TransparentLayout {
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
 
-        let _ = iced::application(
+        let _ =
+            iced::application(
             "Keymore layout selector",
             TransparentLayout::update,
             TransparentLayout::view,

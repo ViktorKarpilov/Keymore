@@ -1,15 +1,16 @@
-use std::{error::Error, thread, time};
-
+use std::{error::Error, thread};
+use std::time::Duration;
 use actions::MouseOperator;
-use locator::actions::locator_finder::get_root_locators;
+use windows::locator::actions::locator_finder::get_root_locators;
 use crate::listener::{KeyListener, ListenerSignal};
+use crate::process_operations::restart_process;
 use crate::visual::TransparentLayout;
 
 mod actions;
-mod locator;
-mod monitor;
 mod visual;
 mod listener;
+mod process_operations;
+mod windows;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let rx = KeyListener::start();
@@ -21,12 +22,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                 println!("Start window");
                 let locators = get_root_locators()?;
                 
-                let created = TransparentLayout::create_layout(locators.clone())?;
-                
-                if let Some(chosen) = &created {
-                    MouseOperator::click(chosen.physical_point);
-                }
-                println!("Chosen locator: {:?}", created);
+                // let created = TransparentLayout::create_layout(locators.clone())?;
+                //
+                println!("Chosen locator mock");
+                // println!("Chosen locator: {:?}", created);
+                // if let Some(chosen) = created {
+                //     MouseOperator::click(chosen.physical_point);
+                // }
+
+                // Just a little time for iced to chill out and caps to release
+                thread::sleep(Duration::from_millis(100));
+
+                // need to restart otherwise we need to run iced in separate thread which is less than desirable
+                // restart_process();
             }
             _ => (),
         }

@@ -9,7 +9,6 @@ use iced::{
     Color, Font, Point, Rectangle, Renderer, Theme,
 };
 use serde::Serialize;
-use serde_json::json;
 
 #[derive(Clone, Serialize)]
 pub struct LocatorCanvas {

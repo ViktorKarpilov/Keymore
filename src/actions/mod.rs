@@ -1,19 +1,18 @@
-use windows::Win32::Foundation::POINT;
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     SendInput, INPUT, INPUT_0, INPUT_MOUSE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN,
     MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_VIRTUALDESK, MOUSEINPUT,
 };
-
-use crate::monitor::physical_to_normalized;
+use crate::windows::locator::locator::Point;
+use crate::windows::monitor::physical_to_normalized;
 
 pub struct MouseOperator {}
 
 impl MouseOperator {
-    pub fn click(point: POINT) {
+    pub fn click(point: Point) {
         let mut commands: [INPUT; 3] = [INPUT::default(); 3];
 
         let normalized = physical_to_normalized(point.x, point.y);
-        let normalizaed_point = POINT {
+        let normalizaed_point = Point {
             x: normalized.0,
             y: normalized.1,
         };
