@@ -1,13 +1,20 @@
+use std::sync::{Arc, Mutex};
+use rdev::{listen, simulate, EventType, Key};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
-use rdev::{listen, simulate, EventType, Key};
+use std::time::Duration;
+use crate::windows::state::is_caps_lock_on;
 
 #[derive(Debug)]
-pub enum ListenerSignal{
+pub enum ListenerSignal {
     PutInSleep,
     Initiated,
-    LocatorsCanvasInitiated
+    LocatorsCanvasInitiated,
 }
+
+pub const INITIATION_KEY: Key = Key::CapsLock;
+pub const LOCATOR_CANVAS_KEY: Key = Key::Alt;
+pub const INITIATION_KEY_CAPITAL: bool = true;
 
 pub struct KeyListener;
 
@@ -16,40 +23,59 @@ impl KeyListener {
         let (tx, rx) = channel();
 
         let _listener = thread::spawn(move || {
-            let mut initiated = false;
+            let mut initiation_requested = Arc::new(Mutex::new(false));
+            let mut initiation_handle;
             
-            listen(move |event| {
-                match event.event_type {
-                    EventType::KeyPress(key) => {
-                        if key == Key::CapsLock{
-                            initiated = !initiated;
-                            let signal = match initiated{
-                                true => {ListenerSignal::Initiated},
-                                false => {ListenerSignal::PutInSleep}
+            let mut initiated = false;
+
+            listen(move |event| match event.event_type {
+                EventType::KeyPress(key) => match key {
+                    INITIATION_KEY => {
+                        if*initiation_requested.lock().unwrap(){
+                            let signal = match initiated {
+                                true => ListenerSignal::Initiated,
+                                false => ListenerSignal::PutInSleep,
                             };
+
                             tx.send(signal)
                                 .unwrap_or_else(|e| println!("Could not send event {:?}", e));
-                        }
 
-                        if initiated && key == Key::Alt{
-                            tx.send(ListenerSignal::LocatorsCanvasInitiated)
-                                .unwrap_or_else(|e| println!("Could not send event {:?}", e));
-                            match simulate(&EventType::KeyPress(Key::CapsLock)) {
-                                Ok(()) => (),
-                                Err(_) => {
-                                    println!("Error during caps release");
+                            *initiation_requested.lock().unwrap() = false;
+                        }
+                        else{
+                            *initiation_requested.lock().unwrap() = true;
+
+                            initiation_handle = thread::spawn(|| {
+                                thread::sleep(Duration::from_secs(1));
+                                if *initiation_requested.lock().unwrap(){
+                                    *initiation_requested.lock().unwrap() = false;
                                 }
-                            }
+                            });
                         }
                     }
-                    _ => ()
-                }
-            }).expect("Could not listen");
+                    LOCATOR_CANVAS_KEY => {
+                        if initiated {
+                            println!("Cap initialized {:?}", initiated);
+
+                            if is_caps_lock_on() && INITIATION_KEY_CAPITAL{
+                                match simulate(&EventType::KeyPress(INITIATION_KEY)) {
+                                    Ok(()) => (),
+                                    Err(_) => {
+                                        println!("Error during caps release");
+                                    }
+                                }
+                            }
+                            tx.send(ListenerSignal::LocatorsCanvasInitiated)
+                                .unwrap_or_else(|e| println!("Could not send event {:?}", e));
+                        }
+                    }
+                    _ => (),
+                },
+                _ => (),
+            })
+            .expect("Could not listen");
         });
-        
+
         rx
     }
 }
-
-
-

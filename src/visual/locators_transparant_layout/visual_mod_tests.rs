@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use std::sync::mpsc::channel;
-    use crate::locator::locator::Locator;
+    use crate::windows::locator::locator::Locator;
     use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
     use crate::visual::locators_transparant_layout::test_helpers::{get_test_locators, KeyQueueLengths};
     use crate::visual::locators_transparant_layout::transparent_layout::Message::UpdateChosenKey;

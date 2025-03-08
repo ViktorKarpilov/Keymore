@@ -1,6 +1,5 @@
 use fake::{Fake, Faker};
-use windows::Win32::Foundation::POINT;
-use crate::locator::locator::Locator;
+use crate::windows::locator::locator::{Locator, Point};
 
 
 pub struct KeyQueueLengths(usize);
@@ -14,11 +13,11 @@ impl KeyQueueLengths {
 pub fn get_test_locators(count: usize) -> Vec<Locator> {
     let mut test_locators: Vec<Locator> = Vec::new();
     let point = || Locator {
-        physical_point: POINT {
+        physical_point: Point {
             x: Faker.fake(),
             y: Faker.fake(),
         },
-        resolution_point: POINT {
+        resolution_point: Point {
             x: Faker.fake(),
             y: Faker.fake(),
         },

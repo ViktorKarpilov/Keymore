@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use windows::Win32::{
-    Foundation::{POINT, RECT},
+    Foundation::{RECT},
     System::{
         Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_APARTMENTTHREADED},
         Variant::VARIANT,
@@ -15,7 +15,8 @@ use windows::Win32::{
     },
 };
 
-use crate::{locator::locator::Locator, monitor::get_dpi_for_window};
+use crate::windows::locator::locator::{Locator, Point};
+use crate::windows::monitor::get_dpi_for_window;
 
 pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
     let mut results;
@@ -36,7 +37,7 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
             let element = clickables.GetElement(i)?;
 
             let (x, y) = {
-                let mut point = POINT::default();
+                let mut point = windows::Win32::Foundation::POINT::default();
                 match element.GetClickablePoint(&mut point) {
                     Ok(_) => (point.x, point.y),
                     Err(_) => {
@@ -60,7 +61,7 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
 
             // If we got valid coordinates, add to results
             if (x != -1 && y != -1) && !(x == y && y == 0) {
-                results.push(Locator::new(POINT { x, y }, dpi));
+                results.push(Locator::new(Point { x, y }, dpi));
             }
         }
     }

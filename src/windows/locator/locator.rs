@@ -1,20 +1,25 @@
 use serde::{Serialize, Serializer};
-use windows::Win32::Foundation::POINT;
+use crate::windows::monitor::physical_to_logical;
 
-use crate::monitor::physical_to_logical;
+#[derive(Clone, Serialize, Debug, Default)]
+pub struct Point {
+    pub x: i32, 
+    pub y: i32,
+}
 
 #[derive(Clone, Debug)]
 pub struct Locator {
-    pub physical_point: POINT,
-    pub resolution_point: POINT,
+    pub physical_point: Point,
+    pub resolution_point: Point,
 }
 
 impl Locator {
-    pub fn new(physical: POINT, dpi: u32) -> Locator {
+    pub fn new(physical: Point, dpi: u32) -> Locator {
+        // WINDOWS
         let (x, y) = physical_to_logical(physical.x, physical.y, dpi);
         Locator {
             physical_point: physical,
-            resolution_point: POINT { x, y },
+            resolution_point: Point { x, y },
         }
     }
 }
