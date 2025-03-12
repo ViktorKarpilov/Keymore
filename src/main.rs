@@ -22,19 +22,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 println!("Start window");
                 let locators = get_root_locators()?;
                 
-                // let created = TransparentLayout::create_layout(locators.clone())?;
-                //
-                println!("Chosen locator mock");
-                // println!("Chosen locator: {:?}", created);
-                // if let Some(chosen) = created {
-                //     MouseOperator::click(chosen.physical_point);
-                // }
+                let created = TransparentLayout::create_layout(locators.clone())?;
+                
+                println!("Chosen locator: {:?}", created);
+                if let Some(chosen) = created {
+                    MouseOperator::click(chosen.physical_point);
+                }
 
                 // Just a little time for iced to chill out and caps to release
-                thread::sleep(Duration::from_millis(100));
 
                 // need to restart otherwise we need to run iced in separate thread which is less than desirable
-                // restart_process();
+                restart_process();
             }
             _ => (),
         }
