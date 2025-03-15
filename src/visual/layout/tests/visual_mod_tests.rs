@@ -2,10 +2,10 @@
 mod tests {
     use std::sync::mpsc::channel;
     use crate::windows::locator::locator::Locator;
-    use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
-    use crate::visual::locators_transparant_layout::test_helpers::{get_test_locators, KeyQueueLengths};
-    use crate::visual::locators_transparant_layout::transparent_layout::Message::UpdateChosenKey;
-    use crate::visual::locators_transparant_layout::transparent_layout::TransparentLayout;
+    use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
+    use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
+    use crate::visual::layout::transparent_layout::Message::UpdateChosenKey;
+    use crate::visual::layout::transparent_layout::TransparentLayout;
 
     #[test]
     fn created_with_canvas() {
@@ -14,8 +14,8 @@ mod tests {
 
         let layout = TransparentLayout::new(locator_root, tx);
 
-        assert_eq!(layout.canvas_layout.location_key, None);
-        assert_eq!(layout.canvas_layout.locations_paths.unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
+        assert_eq!(layout.locators_canvas.location_key, None);
+        assert_eq!(layout.locators_canvas.locations_paths.unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
     }
 
     #[test]
@@ -25,12 +25,12 @@ mod tests {
         let target_key = smol_str::SmolStr::from("f");
 
         let mut layout = TransparentLayout::new(locator_root, tx);
-        assert_eq!(layout.canvas_layout.location_key, None);
+        assert_eq!(layout.locators_canvas.location_key, None);
 
         _ = layout.update(UpdateChosenKey(target_key));
-        assert_eq!(layout.canvas_layout.location_key, Some(String::from("f")));
-        assert_eq!(layout.canvas_layout.locations_paths.clone().unwrap().len(), KeyQueueLengths::SINGLE_CHAR);
-        assert!(layout.canvas_layout.locations_paths.unwrap().into_iter().all(|path| path.1.contains('f')));
+        assert_eq!(layout.locators_canvas.location_key, Some(String::from("f")));
+        assert_eq!(layout.locators_canvas.locations_paths.clone().unwrap().len(), KeyQueueLengths::SINGLE_CHAR);
+        assert!(layout.locators_canvas.locations_paths.unwrap().into_iter().all(|path| path.1.contains('f')));
     }
 
     #[test]
@@ -44,9 +44,9 @@ mod tests {
         _ = layout.update(UpdateChosenKey(first_target_key));
         _ = layout.update(UpdateChosenKey(second_target_key));
 
-        assert_eq!(layout.canvas_layout.location_key, Some(String::from("fg")));
-        assert_eq!(layout.canvas_layout.locations_paths.clone().unwrap().len(), 1);
-        assert!(layout.canvas_layout.locations_paths.unwrap().into_iter().all(|path| path.1.contains("fg")));
+        assert_eq!(layout.locators_canvas.location_key, Some(String::from("fg")));
+        assert_eq!(layout.locators_canvas.locations_paths.clone().unwrap().len(), 1);
+        assert!(layout.locators_canvas.locations_paths.unwrap().into_iter().all(|path| path.1.contains("fg")));
     }
 
     #[test]
@@ -57,9 +57,9 @@ mod tests {
 
         let mut layout = TransparentLayout::new(locator_root, tx);
         _ = layout.update(UpdateChosenKey(first_target_key));
-        assert_eq!(layout.canvas_layout.location_key, None);
+        assert_eq!(layout.locators_canvas.location_key, None);
 
-        assert_eq!(layout.canvas_layout.locations_paths.clone().unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
+        assert_eq!(layout.locators_canvas.locations_paths.clone().unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
     }
 
     #[test]
@@ -73,7 +73,7 @@ mod tests {
         _ = layout.update(UpdateChosenKey(target_key.clone()));
         _ = layout.update(UpdateChosenKey(target_key.clone()));
         
-        assert_eq!(layout.canvas_layout.location_key, None);
-        assert_eq!(layout.canvas_layout.locations_paths.clone().unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
+        assert_eq!(layout.locators_canvas.location_key, None);
+        assert_eq!(layout.locators_canvas.locations_paths.clone().unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
     }
 }

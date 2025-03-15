@@ -1,3 +1,3 @@
-mod locators_transparant_layout;
+mod layout;
 
-pub use locators_transparant_layout::transparent_layout::TransparentLayout;
+pub use layout::transparent_layout::TransparentLayout;

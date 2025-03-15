@@ -1,4 +1,4 @@
-use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
+use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
 use iced::{
     alignment::{Horizontal, Vertical},
     mouse::{self},
