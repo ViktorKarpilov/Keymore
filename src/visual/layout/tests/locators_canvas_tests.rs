@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use serde_json::json;
-    use crate::visual::locators_transparant_layout::locators_canvas::LocatorCanvas;
-    use crate::visual::locators_transparant_layout::test_helpers::{get_test_locators, KeyQueueLengths};
-    use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
+    use crate::visual::layout::locators::locators_canvas::LocatorCanvas;
+    use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
+    use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
 
     #[test]
     fn create_canvas_canvas_valid() {

@@ -5,14 +5,15 @@ use iced::widget::canvas;
 use iced::{keyboard, window, Size, Subscription};
 use iced::{Element, Task};
 use iced::{Length, Theme};
-use crate::visual::locators_transparant_layout::locators_canvas::LocatorCanvas;
-use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
+use crate::visual::layout::locators::locators_canvas::LocatorCanvas;
+use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
+use crate::visual::layout::vignette_canvas::VignetteCanvas;
 
 pub struct TransparentLayout {
     sender: std::sync::mpsc::Sender<Locator>,
-    pub canvas_layout: LocatorCanvas,
+    pub locators_canvas: LocatorCanvas,
 }
 
 impl TransparentLayout {
@@ -24,7 +25,7 @@ impl TransparentLayout {
 
         TransparentLayout {
             sender,
-            canvas_layout: canvas,
+            locators_canvas: canvas,
         }
     }
 }
@@ -83,7 +84,7 @@ impl TransparentLayout {
                 let new_key = {
                     match potential_targets.contains(&new_key.as_str()) {
                         true => Some({
-                            if let Some(chosen_key) = &self.canvas_layout.location_key {
+                            if let Some(chosen_key) = &self.locators_canvas.location_key {
                                 format!("{}{}", chosen_key, new_key.as_str())
                             } else {
                                 format!("{}", new_key.as_str())
@@ -93,13 +94,13 @@ impl TransparentLayout {
                     }
                 };
 
-                self.canvas_layout.update(new_key.clone());
+                self.locators_canvas.update(new_key.clone());
 
-                if self.canvas_layout.locations_paths.is_none() {
-                    self.canvas_layout.update(None);
+                if self.locators_canvas.locations_paths.is_none() {
+                    self.locators_canvas.update(None);
                 }
 
-                if let Some(points) = &self.canvas_layout.locations_paths {
+                if let Some(points) = &self.locators_canvas.locations_paths {
                     if points.len() == 1 {
                         return Task::done(Message::LocatorChosen(
                             points[0].0.node.clone().unwrap(),
@@ -113,10 +114,16 @@ impl TransparentLayout {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        canvas(self.canvas_layout.clone())
+        println!("Draw a rectangle");
+        canvas(VignetteCanvas { border_width: 20.0, opacity: 0.2 })
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
+        
+        // canvas(self.locators_canvas.clone())
+        //     .width(Length::Fill)
+        //     .height(Length::Fill)
+        //     .into()
     }
 
     fn subscription(&self) -> Subscription<Message> {

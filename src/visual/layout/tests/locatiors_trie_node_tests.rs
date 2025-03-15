@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use serde_json::json;
-    use crate::visual::locators_transparant_layout::locators_trie_node::LocatorTrieNode;
-    use crate::visual::locators_transparant_layout::test_helpers::{get_test_locators, KeyQueueLengths};
+    use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
+    use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
 
     #[derive(Clone)]
     enum LocatorSize {
