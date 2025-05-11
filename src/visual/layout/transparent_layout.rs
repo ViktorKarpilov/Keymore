@@ -34,6 +34,7 @@ impl TransparentLayout {
 pub enum Message {
     LocatorChosen(Locator),
     UpdateChosenKey(smol_str::SmolStr),
+    Exit,
 }
 
 // Locators in are not the same as locators used - need to fix that shit
@@ -76,9 +77,12 @@ impl TransparentLayout {
         let potential_targets = key_qeue_14!();
 
         match message {
+            Message::Exit => {
+                window::get_latest().and_then(window::close)
+            }
             Message::LocatorChosen(locator) => {
                 let _ = self.sender.send(locator);
-                window::get_latest().and_then(window::close)
+                Task::done(Message::Exit)
             }
             Message::UpdateChosenKey(new_key) => {
                 let new_key = {
@@ -128,6 +132,7 @@ impl TransparentLayout {
 
     fn subscription(&self) -> Subscription<Message> {
         keyboard::on_key_press(|key, _modifiers| match key {
+            keyboard::Key::Named(keyboard::key::Named::Escape) => Some(Message::Exit),
             keyboard::Key::Character(symbol) => Some(Message::UpdateChosenKey(symbol)),
             _ => None,
         })
