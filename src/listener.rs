@@ -9,10 +9,12 @@ pub enum ListenerSignal {
     PutInSleep,
     Initiated,
     LocatorsCanvasInitiated,
+    Quit,
 }
 
 pub const INITIATION_KEY: Key = Key::CapsLock;
 pub const LOCATOR_CANVAS_KEY: Key = Key::Alt;
+pub const QUIT_KEY: Key = Key::Escape;
 // pub const INITIATION_KEY_CAPITAL: bool = true;
 pub const DOUBLE_CLICK_TIMEOUT: Duration = Duration::from_millis(500);
 
@@ -64,17 +66,22 @@ impl KeyListener {
                             *init_state = false;
                             drop(init_state);
         
-                            match simulate(&EventType::KeyPress(INITIATION_KEY)) {
-                                Ok(()) => (),
-                                Err(_) => {
-                                    println!("Error during caps release");
-                                }
-                            }
+                            // TODO: https://github.com/ViktorKarpilov/Keymore/issues/16
+                            // match simulate(&EventType::KeyPress(INITIATION_KEY)) {
+                            //     Ok(()) => (),
+                            //     Err(_) => {
+                            //         println!("Error during caps release");
+                            //     }
+                            // }
         
                             tx.send(ListenerSignal::LocatorsCanvasInitiated)
                                 .unwrap_or_else(|e| println!("Could not send event {:?}", e));
                         }
                     },
+                    QUIT_KEY => {
+                        tx.send(ListenerSignal::Quit)
+                            .unwrap_or_else(|e| println!("Could not send event {:?}", e));
+                    }
                     _ => (),
                 },
                 _ => (),
