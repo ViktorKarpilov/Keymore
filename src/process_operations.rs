@@ -1,5 +1,6 @@
 use std::env;
 use std::process::{exit, Command};
+use log::error;
 
 pub fn restart_process() {
     let current_exe = env::current_exe().expect("Failed to get current executable path");
@@ -15,7 +16,7 @@ pub fn restart_process() {
         },
         Err(e) => {
             // Handle error - couldn't spawn new process
-            eprintln!("Failed to restart process: {}", e);
+            error!("Failed to restart process: {}", e);
             exit(1);
         }
     }

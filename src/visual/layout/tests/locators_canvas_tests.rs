@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use log::info;
     use serde_json::json;
     use crate::visual::layout::locators::locators_canvas::LocatorCanvas;
     use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
@@ -21,7 +22,7 @@ mod tests {
         let locator_root = LocatorTrieNode::new(get_test_locators(50));
         let canvas = LocatorCanvas::new(locator_root, Some(String::from("t")));
 
-        println!("Canvas: {}", json!(canvas));
+        info!("Canvas: {}", json!(canvas));
         
         assert_eq!(canvas.location_key, Some("t".to_string()));
         assert_eq!(canvas.locations_paths.clone().unwrap().len(), KeyQueueLengths::SINGLE_CHAR);
