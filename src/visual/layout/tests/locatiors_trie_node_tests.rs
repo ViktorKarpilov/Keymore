@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use log::info;
     use serde_json::json;
     use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
     use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
@@ -68,10 +69,10 @@ mod tests {
         let single_locator = LocatorTrieNode::accessible_children(locator_root.clone(), "ff");
         let locator_small_group = LocatorTrieNode::accessible_children(locator_root.clone(), "f");
 
-        println!("Single locator: {}", json!(single_locator));
+        info!("Single locator: {}", json!(single_locator));
         assert_eq!(single_locator.clone().unwrap().len(), 1);
         assert_eq!(single_locator.unwrap()[0].1, "ff");
-        println!("Small group: {}", json!(locator_small_group));
+        info!("Small group: {}", json!(locator_small_group));
         assert_eq!(locator_small_group.unwrap().len(), 14);
     }
 
@@ -81,7 +82,7 @@ mod tests {
         
         let found_group  = LocatorTrieNode::accessible_children(locator_root.clone(), "ff");
 
-        println!("Found group: {}", json!(found_group));
+        info!("Found group: {}", json!(found_group));
         assert_eq!(found_group.clone().unwrap().len(), 14);
         assert!(found_group.unwrap().into_iter().all(|group| group.1.len() == 3));
     }
@@ -90,10 +91,10 @@ mod tests {
     fn search_accessible_children_when_between_char_returns_expected_group() {
         let locator_root = LocatorTrieNode::new(get_test_locators(50));
 
-        println!("Root: {}", json!(locator_root));
+        info!("Root: {}", json!(locator_root));
         let found_group  = LocatorTrieNode::accessible_children(locator_root.clone(), "t");
 
-        println!("Found group: {}", json!(found_group));
+        info!("Found group: {}", json!(found_group));
         assert_eq!(found_group.clone().unwrap().len(), 14);
         assert!(found_group.unwrap().into_iter().all(|group| group.1.len() == 2));
     }
@@ -144,7 +145,7 @@ mod tests {
                     .all(|child| child.children.is_none()));
             },
             LocatorSize::Medium => {
-                println!("Root: {}", json!(root));
+                info!("Root: {}", json!(root));
 
                 // Children of children for medium should have node
                 assert!(root
@@ -175,7 +176,7 @@ mod tests {
                     }));
             },
             LocatorSize::Big => {
-                println!("Root: {}", json!(root));
+                info!("Root: {}", json!(root));
                 
                 // Children of children of children for big should have node
                 assert!(root
@@ -194,12 +195,12 @@ mod tests {
                                     .unwrap()
                                     .iter()
                                     .inspect(|child_l3| {
-                                        println!("child_l3: {}", json!(child_l3));
+                                        info!("child_l3: {}", json!(child_l3));
                                     })
                                     .all(|child_l3| {
                                         match child_l3.node {
                                             Some(_) => (),
-                                            None => println!("child_l3 has none node: {}", json!(child_l3)),
+                                            None => info!("child_l3 has none node: {}", json!(child_l3)),
                                         }
                                         
                                         child_l3.node.is_some()
@@ -226,7 +227,7 @@ mod tests {
                                     .all(|child_l3| {
                                         match child_l3.node {
                                             Some(_) => (),
-                                            None => println!("child_l3 has some child: {}", json!(child_l3)),
+                                            None => info!("child_l3 has some child: {}", json!(child_l3)),
                                         }
                                         
                                         child_l3.children.is_none()

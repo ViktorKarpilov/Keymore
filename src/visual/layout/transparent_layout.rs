@@ -9,6 +9,7 @@ use crate::visual::layout::locators::locators_canvas::LocatorCanvas;
 use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
+use log::trace;
 use crate::visual::layout::vignette_canvas::VignetteCanvas;
 
 pub struct TransparentLayout {
@@ -118,7 +119,7 @@ impl TransparentLayout {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        println!("Draw a rectangle");
+        trace!("Draw a rectangle");
         canvas(VignetteCanvas { border_width: 20.0, opacity: 0.2 })
             .width(Length::Fill)
             .height(Length::Fill)

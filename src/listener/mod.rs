@@ -3,6 +3,7 @@ use rdev::{listen, simulate, EventType, Key};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
 use std::time::{Duration, Instant};
+use log::{debug, error};
 
 #[derive(Debug)]
 pub enum ListenerSignal {
@@ -55,13 +56,13 @@ impl KeyListener {
         
                         if signal.is_some() {
                             tx.send(signal.unwrap())
-                                .unwrap_or_else(|e| println!("Could not send event {:?}", e));
+                                .unwrap_or_else(|e| error!("Could not send event {:?}", e));
                         }
                     },
                     LOCATOR_CANVAS_KEY => {
                         let mut init_state = initiated_clone.lock().unwrap();
                         if *init_state {
-                            println!("Cap initialized {:?}", *init_state);
+                            debug!("Cap initialized {:?}", *init_state);
         
                             *init_state = false;
                             drop(init_state);
@@ -70,17 +71,17 @@ impl KeyListener {
                             // match simulate(&EventType::KeyPress(INITIATION_KEY)) {
                             //     Ok(()) => (),
                             //     Err(_) => {
-                            //         println!("Error during caps release");
+                            //         error!("Error during caps release");
                             //     }
                             // }
         
                             tx.send(ListenerSignal::LocatorsCanvasInitiated)
-                                .unwrap_or_else(|e| println!("Could not send event {:?}", e));
+                                .unwrap_or_else(|e| error!("Could not send event {:?}", e));
                         }
                     },
                     QUIT_KEY => {
                         tx.send(ListenerSignal::Quit)
-                            .unwrap_or_else(|e| println!("Could not send event {:?}", e));
+                            .unwrap_or_else(|e| error!("Could not send event {:?}", e));
                     }
                     _ => (),
                 },
