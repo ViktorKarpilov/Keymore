@@ -7,3 +7,6 @@ edition = "2021"
 iced = { version = "0.13.1", features = ["canvas", "advanced"] }
 windows_operations = {path = "../windows_operations"}
 serde = { version = "1.0.217", features = ["derive"] }
+screen_size = "0.1.0"
+serde_json = "1.0.140"
+fake = "4.0.0"

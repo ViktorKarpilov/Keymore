@@ -1,5 +1,5 @@
 use fake::{Fake, Faker};
-use crate::windows::locator::locator::{Locator, Point};
+use windows_operations::locator::locator::{Locator, Point};
 
 
 pub struct KeyQueueLengths(usize);

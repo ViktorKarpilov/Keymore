@@ -1,5 +1,5 @@
 use serde::{Serialize, Serializer};
-use crate::monitor::physical_to_logical;
+use crate::display::physical_to_logical;
 
 #[derive(Clone, Serialize, Debug, Default)]
 pub struct Point {

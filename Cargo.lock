@@ -794,8 +794,6 @@ dependencies = [
  "serde",
  "serde_json",
  "smol_str",
- "winapi",
- "windows 0.59.0",
 ]
 
 [[package]]
@@ -3382,8 +3380,11 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "visual"
 version = "0.1.0"
 dependencies = [
+ "fake",
  "iced",
+ "screen_size",
  "serde",
+ "serde_json",
  "windows_operations",
 ]
 

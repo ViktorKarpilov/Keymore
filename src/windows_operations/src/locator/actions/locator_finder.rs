@@ -15,7 +15,7 @@ use windows::Win32::{
     },
 };
 use crate::locator::locator::{Locator, Point};
-use crate::monitor::get_dpi_for_window;
+use crate::display::get_dpi_for_window;
 
 pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
     let mut results;

@@ -9,7 +9,5 @@ iced = { version = "0.13.1", features = ["canvas", "advanced"] }
 screen_size = "0.1.0"
 serde_json = "1.0.140"
 smol_str = "0.2.2"
-windows = { version = "0.59.0", features = ["Win32_System_Com", "Win32_System_Ole", "Win32_System_Variant", "Win32_UI_Accessibility", "Win32_UI_HiDpi", "Win32_UI_Input", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_WindowsAndMessaging"] }
 serde = { version = "1.0.217", features = ["derive"] }
 rdev = "0.5.3"
-winapi = "0.3.9"

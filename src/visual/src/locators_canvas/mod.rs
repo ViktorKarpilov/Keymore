@@ -1,5 +1,5 @@
-mod locators_trie_node;
-mod key_queue;
+pub  mod locators_trie_node;
+pub  mod key_queue;
 
 use iced::{
     alignment::{Horizontal, Vertical},

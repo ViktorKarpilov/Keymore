@@ -2,8 +2,8 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     SendInput, INPUT, INPUT_0, INPUT_MOUSE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN,
     MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_VIRTUALDESK, MOUSEINPUT,
 };
-use crate::windows::locator::locator::Point;
-use crate::windows::monitor::physical_to_normalized;
+use crate::locator::locator::Point;
+use crate::display::physical_to_normalized;
 
 pub struct MouseOperator {}
 
