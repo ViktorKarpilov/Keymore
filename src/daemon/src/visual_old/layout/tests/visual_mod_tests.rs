@@ -2,10 +2,10 @@
 mod tests {
     use std::sync::mpsc::channel;
     use crate::windows::locator::locator::Locator;
-    use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
-    use crate::visual::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
-    use crate::visual::layout::transparent_layout::Message::UpdateChosenKey;
-    use crate::visual::layout::transparent_layout::TransparentLayout;
+    use crate::visual_old::layout::locators::locators_trie_node::LocatorTrieNode;
+    use crate::visual_old::layout::tests::test_helpers::{get_test_locators, KeyQueueLengths};
+    use crate::visual_old::layout::transparent_layout::Message::UpdateChosenKey;
+    use crate::visual_old::layout::transparent_layout::TransparentLayout;
 
     #[test]
     fn created_with_canvas() {

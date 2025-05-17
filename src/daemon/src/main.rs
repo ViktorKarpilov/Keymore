@@ -1,13 +1,12 @@
-use std::{error::Error, thread};
-use std::time::Duration;
+use std::error::Error;
 use actions::MouseOperator;
 use windows::locator::actions::locator_finder::get_root_locators;
 use crate::listener::{KeyListener, ListenerSignal};
 use crate::process_operations::restart_process;
-use crate::visual::TransparentLayout;
+use crate::visual_old::TransparentLayout;
 
 mod actions;
-mod visual;
+mod visual_old;
 mod listener;
 mod process_operations;
 mod windows;

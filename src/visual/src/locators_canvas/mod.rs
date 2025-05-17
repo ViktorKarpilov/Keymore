@@ -1,4 +1,6 @@
-use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
+mod locators_trie_node;
+mod key_queue;
+
 use iced::{
     alignment::{Horizontal, Vertical},
     mouse::{self},
@@ -9,6 +11,7 @@ use iced::{
     Color, Font, Point, Rectangle, Renderer, Theme,
 };
 use serde::Serialize;
+use crate::locators_canvas::locators_trie_node::LocatorTrieNode;
 
 #[derive(Clone, Serialize)]
 pub struct LocatorCanvas {

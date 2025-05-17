@@ -1,15 +1,15 @@
-use crate::{key_qeue_14, visual};
+use crate::{key_qeue_14, visual_old};
 use crate::windows::locator::locator::Locator;
 use iced::daemon::Appearance;
-use iced::widget::canvas;
+use iced::widget::{canvas, container, Container};
 use iced::{keyboard, window, Size, Subscription};
 use iced::{Element, Task};
 use iced::{Length, Theme};
-use crate::visual::layout::locators::locators_canvas::LocatorCanvas;
-use crate::visual::layout::locators::locators_trie_node::LocatorTrieNode;
+use crate::visual_old::layout::locators::locators_canvas::LocatorCanvas;
+use crate::visual_old::layout::locators::locators_trie_node::LocatorTrieNode;
 use screen_size::get_primary_screen_size;
 use std::sync::mpsc::channel;
-use crate::visual::layout::vignette_canvas::VignetteCanvas;
+use crate::visual_old::layout::vignette_canvas::VignetteCanvas;
 
 pub struct TransparentLayout {
     sender: std::sync::mpsc::Sender<Locator>,
@@ -48,7 +48,7 @@ impl TransparentLayout {
         let (width, height) = get_primary_screen_size().expect("Screen size");
         let size: Size = Size::new(width as f32, height as f32);
 
-        let _ =
+        let application =
             iced::application(
             "Keymore layout selector",
             TransparentLayout::update,
@@ -119,11 +119,18 @@ impl TransparentLayout {
 
     fn view(&self) -> Element<'_, Message> {
         println!("Draw a rectangle");
-        canvas(VignetteCanvas { border_width: 20.0, opacity: 0.2 })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        let test: Element<'_, Message> = Element::new(
+            container(canvas(VignetteCanvas { border_width: 20.0, opacity: 0.2 }))
+                .width(Length::Fill)
+                .height(Length::Fill));
         
+        test
+
+        // canvas(VignetteCanvas { border_width: 20.0, opacity: 0.2 })
+        //     .width(Length::Fill)
+        //     .height(Length::Fill)
+        //     .into()
+
         // canvas(self.locators_canvas.clone())
         //     .width(Length::Fill)
         //     .height(Length::Fill)
