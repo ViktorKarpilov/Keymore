@@ -1,13 +1,12 @@
 pub  mod locators_canvas;
 pub  mod visual_root;
-mod vignette_overlay;
 
 use iced::{window, Size};
 use crate::visual_root::VisualRoot;
 use screen_size::get_primary_screen_size;
 
 fn main() -> iced::Result {
-    let root = VisualRoot {};
+    let root = VisualRoot { initiatedVisual: None };
 
     let (width, height) = get_primary_screen_size().expect("Screen size");
     let size: Size = Size::new(width as f32, height as f32);

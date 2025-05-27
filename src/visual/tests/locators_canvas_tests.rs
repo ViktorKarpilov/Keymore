@@ -3,14 +3,14 @@ mod test_helpers;
 #[cfg(test)]
 mod tests {
     use serde_json::json;
-    use visual::locators_canvas::LocatorCanvas;
+    use visual::locators_canvas::LocatorsCanvas;
     use visual::locators_canvas::locators_trie_node::LocatorTrieNode;
     use crate::test_helpers::{get_test_locators, KeyQueueLengths};
 
     #[test]
     fn create_canvas_canvas_valid() {
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let canvas = LocatorCanvas::new(locator_root, None);
+        let canvas = LocatorsCanvas::new(locator_root, None);
         
         assert_eq!(canvas.location_key, None);
         assert_eq!(canvas.locations_paths.clone().unwrap().len(), KeyQueueLengths::DOUBLE_CHAR);
@@ -21,7 +21,7 @@ mod tests {
     #[test]
     fn create_canvas_not_full_double_char_canvas_valid_with_double_char() {
         let locator_root = LocatorTrieNode::new(get_test_locators(50));
-        let canvas = LocatorCanvas::new(locator_root, Some(String::from("t")));
+        let canvas = LocatorsCanvas::new(locator_root, Some(String::from("t")));
 
         println!("Canvas: {}", json!(canvas));
         
@@ -33,7 +33,7 @@ mod tests {
     #[test]
     fn create_canvas_for_key_contains_key() {
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let canvas = LocatorCanvas::new(locator_root, Some(String::from("f")));
+        let canvas = LocatorsCanvas::new(locator_root, Some(String::from("f")));
 
         assert_eq!(canvas.location_key, Some(String::from("f")));
         assert_eq!(canvas.clone().locations_paths.unwrap().len(), KeyQueueLengths::SINGLE_CHAR);
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn create_concrete_canvas_for_key_contains_key() {
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let canvas = LocatorCanvas::new(locator_root, Some(String::from("ff")));
+        let canvas = LocatorsCanvas::new(locator_root, Some(String::from("ff")));
 
         assert_eq!(canvas.location_key, Some(String::from("ff")));
         assert_eq!(canvas.clone().locations_paths.unwrap().len(), 1);
@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn update_should_filter_out_children() {
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let mut canvas = LocatorCanvas::new(locator_root, None);
+        let mut canvas = LocatorsCanvas::new(locator_root, None);
         
         canvas.update(Some(String::from("f")));
 
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn update_should_filter_out_without_key(){
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let mut canvas = LocatorCanvas::new(locator_root, None);
+        let mut canvas = LocatorsCanvas::new(locator_root, None);
         
         canvas.update(None);
 
@@ -91,7 +91,7 @@ mod tests {
     #[test]
     fn update_should_reset_updated(){
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let mut canvas = LocatorCanvas::new(locator_root, None);
+        let mut canvas = LocatorsCanvas::new(locator_root, None);
 
         canvas.update(Some(String::from("f")));
         canvas.update(None);
@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn update_should_set_new_key_value(){
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let mut canvas = LocatorCanvas::new(locator_root, None);
+        let mut canvas = LocatorsCanvas::new(locator_root, None);
 
         canvas.update(Some(String::from("fa")));
 
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn update_should_set_new_key_none(){
         let locator_root = LocatorTrieNode::new(get_test_locators(KeyQueueLengths::DOUBLE_CHAR));
-        let mut canvas = LocatorCanvas::new(locator_root, Some(String::from("ff")));
+        let mut canvas = LocatorsCanvas::new(locator_root, Some(String::from("ff")));
 
         canvas.update(None);
 

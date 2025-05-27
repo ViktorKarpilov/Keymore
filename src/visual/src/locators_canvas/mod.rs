@@ -1,33 +1,29 @@
 pub  mod locators_trie_node;
 pub  mod key_queue;
 
-use iced::{
-    alignment::{Horizontal, Vertical},
-    mouse::{self},
-    widget::{
-        canvas::{self, Text},
-        text::Shaping,
-    },
-    Color, Font, Point, Rectangle, Renderer, Theme,
-};
+use iced::{alignment::{Horizontal, Vertical}, mouse::{self}, widget, widget::{
+    canvas::{self, Text},
+    text::Shaping,
+}, Color, Element, Font, Length, Point, Rectangle, Renderer, Theme};
 use serde::Serialize;
 use crate::locators_canvas::locators_trie_node::LocatorTrieNode;
+use crate::visual_root::{RootMessage, RootVisible};
 
 #[derive(Clone, Serialize)]
-pub struct LocatorCanvas {
+pub struct LocatorsCanvas {
     pub location_key: Option<String>,
     pub locations_paths: Option<Vec<(LocatorTrieNode, String)>>,
     pub root: LocatorTrieNode,
 }
 
-impl LocatorCanvas {
-    pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorCanvas {
+impl LocatorsCanvas {
+    pub fn new(locators_trie: LocatorTrieNode, location_key: Option<String>) -> LocatorsCanvas {
         let locations_paths =
-            LocatorCanvas::filtered_children(locators_trie.clone(), location_key.clone());
+            LocatorsCanvas::filtered_children(locators_trie.clone(), location_key.clone());
 
         let root = locators_trie;
 
-        LocatorCanvas {
+        LocatorsCanvas {
             location_key,
             locations_paths,
             root,
@@ -45,7 +41,7 @@ impl LocatorCanvas {
             }
             None => None,
         };
-        let target_paths = LocatorCanvas::filtered_children(self.root.clone(), location_key);
+        let target_paths = LocatorsCanvas::filtered_children(self.root.clone(), location_key);
         self.locations_paths = {
             match target_paths {
                 Some(value) => {
@@ -73,7 +69,7 @@ impl LocatorCanvas {
     }
 }
 
-impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
+impl<'a, Message> canvas::Program<Message> for LocatorsCanvas {
     type State = ();
 
     fn draw(
@@ -111,5 +107,14 @@ impl<'a, Message> canvas::Program<Message> for LocatorCanvas {
         }
 
         vec![frame.into_geometry()]
+    }
+}
+
+impl RootVisible for LocatorsCanvas {
+    fn view(&self) -> Element<RootMessage> {
+        widget::canvas(self)
+             .width(Length::Fill)
+             .height(Length::Fill)
+             .into()
     }
 }
