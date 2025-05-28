@@ -1,13 +1,12 @@
 pub  mod locators_trie_node;
 pub  mod key_queue;
 
-use iced::{alignment::{Horizontal, Vertical}, mouse::{self}, widget, widget::{
+use crate::locators_canvas::locators_trie_node::LocatorTrieNode;
+use iced::{alignment::{Horizontal, Vertical}, mouse::{self}, widget::{
     canvas::{self, Text},
     text::Shaping,
-}, Color, Element, Font, Length, Point, Rectangle, Renderer, Theme};
+}, Color, Font, Point, Rectangle, Renderer, Theme};
 use serde::Serialize;
-use crate::locators_canvas::locators_trie_node::LocatorTrieNode;
-use crate::visual_root::{RootMessage, RootVisible};
 
 #[derive(Clone, Serialize)]
 pub struct LocatorsCanvas {
@@ -107,14 +106,5 @@ impl<'a, Message> canvas::Program<Message> for LocatorsCanvas {
         }
 
         vec![frame.into_geometry()]
-    }
-}
-
-impl RootVisible for LocatorsCanvas {
-    fn view(&self) -> Element<RootMessage> {
-        widget::canvas(self)
-             .width(Length::Fill)
-             .height(Length::Fill)
-             .into()
     }
 }

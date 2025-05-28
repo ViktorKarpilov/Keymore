@@ -1,8 +1,7 @@
 use iced::gradient::ColorStop;
 use iced::widget::canvas::gradient::Linear;
-use iced::widget::canvas::{Fill, Frame, Geometry, Path};
-use iced::{mouse::{self}, widget::canvas::{self}, Color, Element, Length, Point, Rectangle, Size};
-use crate::visual_root::{RootMessage, RootVisible};
+use iced::widget::canvas::{Frame, Geometry, Path};
+use iced::{mouse::{self}, widget::canvas::{self}, Color, Point, Rectangle, Size};
 
 #[derive(Clone)]
 pub struct VignetteCanvas {
@@ -76,14 +75,5 @@ impl<'a, Message> canvas::Program<Message> for VignetteCanvas {
         frame.fill(&left_border, gradient);
 
         vec![frame.into_geometry()]
-    }
-}
-
-impl RootVisible for VignetteCanvas{
-    fn view(&self) -> Element<RootMessage> {
-        iced::widget::canvas(self)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
     }
 }
