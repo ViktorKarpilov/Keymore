@@ -3,11 +3,10 @@ use log::{debug, info};
 use std::env;
 use std::error::Error;
 use std::path::PathBuf;
-use crate::logging::add_logging;
+use logging::add_logging;
 
 mod listener;
 mod process_operations;
-mod logging;
 
 // Main application loop
 fn main() -> Result<(), Box<dyn Error>> {
@@ -27,7 +26,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 std::mem::forget(child);
             }
             ListenerSignal::Quit => {
-                info!("Quit");
+                info!("Quit signal in daemon");
+                // return Ok(());
                 // restart_process();
             }
             _ => (),

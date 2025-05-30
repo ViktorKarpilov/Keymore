@@ -788,8 +788,8 @@ name = "daemon"
 version = "0.1.0"
 dependencies = [
  "log",
+ "logging",
  "rdev",
- "simplelog",
 ]
 
 [[package]]
@@ -1822,6 +1822,14 @@ name = "log"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+
+[[package]]
+name = "logging"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "simplelog",
+]
 
 [[package]]
 name = "lru"
@@ -3452,6 +3460,8 @@ version = "0.1.0"
 dependencies = [
  "fake",
  "iced",
+ "log",
+ "logging",
  "screen_size",
  "serde",
  "serde_json",
@@ -4145,6 +4155,7 @@ checksum = "581fee95406bb13382d2f65cd4a908ca7b1e4c2f1917f143ba16efe98a589b5d"
 name = "windows_operations"
 version = "0.1.0"
 dependencies = [
+ "log",
  "rdev",
  "serde",
  "winapi",

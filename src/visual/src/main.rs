@@ -5,8 +5,10 @@ pub  mod visual_root;
 use iced::{window, Size};
 use crate::visual_root::VisualRoot;
 use screen_size::get_primary_screen_size;
+use logging::add_logging;
 
 fn main() -> iced::Result {
+    add_logging().expect("Missing logging configuration");
     let root = VisualRoot::default(); ;
 
     let (width, height) = get_primary_screen_size().expect("Screen size");

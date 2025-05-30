@@ -1,9 +1,8 @@
 [package]
-name = "daemon"
+name = "logging"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rdev = "0.5.3"
 log = "^0.4.27"
-logging = { path = "../logging" }
+simplelog = "^0.12.2"

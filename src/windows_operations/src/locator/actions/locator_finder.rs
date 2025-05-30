@@ -14,20 +14,24 @@ use windows::Win32::{
         WindowsAndMessaging::*,
     },
 };
+use log::{debug, info};
+use windows::Win32::Foundation::HWND;
 use crate::locator::locator::{Locator, Point};
 use crate::display::get_dpi_for_window;
 
-pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
+pub fn get_root_locators(window_handl: Option<HWND>) -> Result<Vec<Locator>, Box<dyn Error>> {
     let mut results;
     unsafe {
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         let automation: IUIAutomation = CoCreateInstance(&CUIAutomation, None, CLSCTX_ALL)?;
-        let window = GetForegroundWindow();
+        let window = window_handl.unwrap_or_else(|| GetForegroundWindow());
         let forground_element = automation.ElementFromHandle(window)?;
         let clickable_condition = create_clickable_elements_condition(automation)?;
         let clickables = forground_element.FindAll(TreeScope_Descendants, &clickable_condition)?;
 
         let count = clickables.Length()?;
+        debug!("Locators count is {}", count);
+        info!("Window is {}", forground_element.CurrentName()?.to_string());
         let dpi = get_dpi_for_window(window)?;
 
         results = Vec::with_capacity(clickables.Length()? as usize);
@@ -58,6 +62,7 @@ pub fn get_root_locators() -> Result<Vec<Locator>, Box<dyn Error>> {
                 }
             };
 
+            debug!("X: {}, Y: {}", x, y);
             // If we got valid coordinates, add to results
             if (x != -1 && y != -1) && !(x == y && y == 0) {
                 results.push(Locator::new(Point { x, y }, dpi));

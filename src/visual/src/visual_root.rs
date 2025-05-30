@@ -1,3 +1,4 @@
+use log::info;
 use crate::locators_canvas::locators_trie_node::LocatorTrieNode;
 use crate::locators_canvas::LocatorsCanvas;
 use crate::vignette_canvas::VignetteCanvas;
@@ -37,12 +38,13 @@ impl VisualRoot {
                     return window::get_latest().and_then(window::close)
                 }
                
-                Task::done(RootMessage::LocatorsCanvas)
+                Task::done(RootMessage::Vignette)
             }
             RootMessage::LocatorsCanvas => {
-                println!("Start locators search...");
+                info!("Start locators search...");
                 let locators = get_root_locators().expect("Can't get root locators");
-                println!("Finish locators search...");
+                info!("Locators found: {:?}", locators);
+                info!("Finish locators search...");
                 let locators_trie = LocatorTrieNode::new(locators);
                 self.initiatedVisual = AvailableVisible::LocatorsCanvas(LocatorsCanvas::new(locators_trie ,None));
                 Task::none()
